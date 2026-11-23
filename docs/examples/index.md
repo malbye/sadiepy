@@ -8,4 +8,5 @@ built, so the outputs shown always match the current code.
 
 01_quickstart
 02_zhang2023_reproduction
+02b_zhang2023_flume_comparison
 ```
