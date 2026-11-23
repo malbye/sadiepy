@@ -98,7 +98,8 @@ def wavenumber(period: npt.ArrayLike, depth: npt.ArrayLike, g: float = GRAVITY) 
         f = x * tanh_x - y  # theory.md Eq. (2.3)
         if np.all(np.abs(f) <= _NEWTON_RTOL * y):
             break
-        f_prime = tanh_x + x / np.cosh(x) ** 2
+        # sech²x = 1 - tanh²x avoids overflow in cosh for very deep entries.
+        f_prime = tanh_x + x * (1.0 - tanh_x**2)
         x = x - f / f_prime  # theory.md Eq. (2.5)
     else:
         raise RuntimeError("dispersion relation did not converge")

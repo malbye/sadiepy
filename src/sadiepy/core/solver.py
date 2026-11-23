@@ -135,7 +135,7 @@ def _resolve_closures(
             raise ValueError(
                 "pass either a bulk `drag` to propagate() or per-layer `Layer.drag`, not both"
             )
-        closure = constant(drag) if isinstance(drag, int | float) else drag
+        closure = drag if isinstance(drag, DragClosure) else constant(float(drag))
         return [closure] * len(vegetation.layers), "bulk"
     closures = []
     for layer in vegetation.layers:
