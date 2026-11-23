@@ -9,6 +9,16 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- Zhang et al. (2023) mangrove presets M1-M3 at model and prototype scale, with the
+  Table 2 test matrix and the Fig. 4 damping factors; generic `rigid_cylinders` preset.
+- Registry of the ten published drag closures of Zhang et al. (2023), Table 3; closures
+  record source scale, vegetation and components, and may use named length scales
+  (`d`, `l_e`, `l_ew`, `r_v`).
+- Vegetation volumes, SVF and characteristic lengths; layer-averaged and depth-averaged
+  geometries (Zhang Eqs. 19-20 and Eq. 4).
+- `propagate(..., cd_evaluation="incident" | "local", scale=...)` and Re rescaling
+  between Froude scales; vegetation scaling to prototype.
+- Theory section 5 and the `02_zhang2023_reproduction` notebook.
 - Documentation site (Sphinx, PyData theme, MyST-NB; Read the Docs config) with the
   theory, an API reference and example notebooks in `docs/examples`
   (`01_quickstart.ipynb`); `[examples]` and `[docs]` extras; CI docs build.

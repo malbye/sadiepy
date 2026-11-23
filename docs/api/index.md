@@ -31,4 +31,6 @@ Modules
    core.drag
    core.solver
    scaling.froude
+   presets.zhang2023
+   presets.generic
 ```
