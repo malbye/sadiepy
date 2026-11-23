@@ -604,3 +604,32 @@ this is (3.4) with equal coefficients; the solver records which mode was used.
 Whether a bulk $C_D$ from one paper can be combined with this package's frontal
 areas depends on how that paper defined its area (see the $\bar D$ note in §3.6);
 the closures themselves are M2.
+
+---
+
+## 4. Froude scaling
+
+A model at geometric scale $1:\lambda$ (prototype length / model length $= \lambda$)
+reproduces the prototype's gravity-wave dynamics when the Froude number
+$\mathrm{Fr} = u/\sqrt{g\,\ell}$ is the same in both, with the same $g$ and, as is
+usual, the same fluid density and viscosity. Writing $\lambda_q$ for the
+prototype/model ratio of a quantity $q$:
+
+| Quantity | Relation | Scale factor |
+|---|---|---|
+| Length $\ell$ ($H$, $h$, $L$, $d$, $x$) | definition | $\lambda$ |
+| Velocity $u$ | $\mathrm{Fr}$ equal $\Rightarrow u \propto \sqrt{\ell}$ | $\lambda^{1/2}$ |
+| Time $T$ | $\ell / u$ | $\lambda^{1/2}$ |
+| Wavenumber $k$, damping factor $\beta$ | 1/length | $\lambda^{-1}$ |
+| Force | $\rho\,u^2\ell^2$ | $\lambda^{3}$ |
+| $\mathrm{Re} = u\ell/\nu$ | same $\nu$ | $\lambda^{1/2}\cdot\lambda = \lambda^{3/2}$ |
+| $\mathrm{KC} = uT/\ell$ | | $\lambda^{1/2}\cdot\lambda^{1/2}/\lambda = 1$ |
+| $\mathrm{Ur} = HL^2/h^3$ | | $\lambda^{3}/\lambda^{3} = 1$ |
+| Elastic modulus $E$ for equal Cauchy number | Cauchy number $\propto \rho u^2/E$ (definition to be verified, M3) | $\lambda$ |
+
+The dispersion relation (2.2) is itself Froude-consistent: scaling $h$ by
+$\lambda$ and $T$ by $\lambda^{1/2}$ leaves $y = \omega^2 h / g$ unchanged, so $kh$
+is unchanged and $k$ scales as $\lambda^{-1}$. Hence KC and Ur are preserved and Re
+is distorted by $\lambda^{3/2}$ (M1 test 8). These are the scalings listed in the
+project spec §2.7; the Cauchy-number row is used only from M3 and its exact
+definition is still to be verified against Luhar & Nepf (2016).
