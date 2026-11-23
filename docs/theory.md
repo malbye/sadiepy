@@ -370,7 +370,7 @@ $H/h \ll 1$. The code emits `ValidityWarning` (never stops silently) when:
 | Check | Condition for warning | Source |
 |---|---|---|
 | Depth-limited breaking | $H/h > 0.78$ | Dean & Dalrymple (1991), Eq. (4.122a), p. 113 (McCowan, 1894), restated as Eq. (12.11), p. 335 for mild slopes; `refs/Dean_Dalrymple_1991.pdf` |
-| Steepness-limited breaking | $H/L > 0.142\tanh kh$ | Project spec §2.2. `TODO(verify)`: see note below |
+| Steepness-limited breaking | $H/L > 0.142\tanh kh$ | Miche (1944) form, chosen by the author (2026-11-23). `TODO(verify)`: citable source for the tanh form; see note below |
 | Nonlinearity | $\mathrm{Ur} > \mathrm{Ur}_{\max}$ | `TODO(verify)`: default $\mathrm{Ur}_{\max}$ and its source; options to be presented at the M1 checkpoint |
 
 $\mathrm{Ur}_{\max}$ is a documented, user-settable parameter.
@@ -386,5 +386,7 @@ $L_o = 1.2\,(gT^2/2\pi)$ "for breaking waves, including nonlinear effects". The
 book does not state the depth-dependent form $H/L > 0.142\tanh kh$ (Miche, 1944)
 used in the spec. In deep water the two differ: with the linear wavelength,
 the spec's form triggers at $H/L = 0.142$, whereas the book's limit corresponds to
-$H/L_{\text{linear}} = 0.142 \times 1.2 \approx 0.170$. The criterion and its
-source are left for the author to decide.
+$H/L_{\text{linear}} = 0.142 \times 1.2 \approx 0.170$. The author chose the
+Miche form (2026-11-23): it applies at every depth and is the more conservative
+of the two in deep water. Its source remains `TODO(verify)` until a reference that
+states the tanh form is in `refs/`.
