@@ -289,8 +289,8 @@ $$
 \tag{2.9}
 $$
 
-This is Zhang et al. (2023) Eq. (8) (to be checked against
-`refs/Zhang_et_al_2023.pdf` once added).
+This is Zhang et al. (2023) Eq. (8), p. 3 (`refs/Zhang_et_al_2023.pdf`), which
+states it without derivation.
 
 **Orbital excursion.** A particle's horizontal displacement is
 $\int u\,dt = -(u_m/\omega)\sin\theta$, so its amplitude is
@@ -351,9 +351,11 @@ $$
 \tag{2.13}
 $$
 
-These are Zhang et al. (2023) Eqs. (5)–(7) (to be checked against
-`refs/Zhang_et_al_2023.pdf`). Zhang et al. use $u = \bar u$ (2.9) and
-$\ell \in \{$DBH, $l_e$, $l_{ew}$, $r_v\}$. The two forms of the Ursell number
+These are Zhang et al. (2023) Eqs. (5)–(7), p. 3 (`refs/Zhang_et_al_2023.pdf`),
+where the scales are written $u_s$ and $l_s$ and Ur is given in the form
+$8\pi^3 (H/L)/(kh)^3$ with the linear wavelength $L = (gT^2/2\pi)\tanh kh$.
+Zhang et al. use $u = \bar u$ (2.9, their §2.2.2) and
+$\ell \in \{$DBH, $l_e$, $l_{ew}$, $r_v\}$ (their §2.2.3). The two forms of the Ursell number
 are identical: with $kh = 2\pi h/L$,
 
 $$
@@ -367,9 +369,22 @@ $H/h \ll 1$. The code emits `ValidityWarning` (never stops silently) when:
 
 | Check | Condition for warning | Source |
 |---|---|---|
-| Depth-limited breaking | $H/h > 0.78$ | Project spec §2.2. `TODO(verify)`: primary source for 0.78 (usually attributed to McCowan, 1894) |
-| Steepness-limited breaking | $H/L > 0.142\tanh kh$ | Project spec §2.2. `TODO(verify)`: primary source (usually attributed to Miche, 1944) |
+| Depth-limited breaking | $H/h > 0.78$ | Dean & Dalrymple (1991), Eq. (4.122a), p. 113 (McCowan, 1894), restated as Eq. (12.11), p. 335 for mild slopes; `refs/Dean_Dalrymple_1991.pdf` |
+| Steepness-limited breaking | $H/L > 0.142\tanh kh$ | Project spec §2.2. `TODO(verify)`: see note below |
 | Nonlinearity | $\mathrm{Ur} > \mathrm{Ur}_{\max}$ | `TODO(verify)`: default $\mathrm{Ur}_{\max}$ and its source; options to be presented at the M1 checkpoint |
 
-$\mathrm{Ur}_{\max}$ is a documented, user-settable parameter. Neither breaking
-coefficient is in `refs/` yet; both are flagged for the author to supply or confirm.
+$\mathrm{Ur}_{\max}$ is a documented, user-settable parameter.
+
+**Depth-limited breaking.** Dean & Dalrymple (1991, p. 113) give McCowan's criterion
+$H_b = \kappa h_b$ with $\kappa = 0.78$, and note on p. 335 that beach slopes steeper
+than about 1:40 increase the ratio substantially. On the flat bed assumed here,
+0.78 applies.
+
+**Steepness-limited breaking (open).** Dean & Dalrymple (1991), Eq. (12.12),
+p. 335, give only the *deep-water* limit $(H_b/L_o)_{\max} = 0.142$, with
+$L_o = 1.2\,(gT^2/2\pi)$ "for breaking waves, including nonlinear effects". The
+book does not state the depth-dependent form $H/L > 0.142\tanh kh$ (Miche, 1944)
+used in the spec. In deep water the two differ: with the linear wavelength,
+the spec's form triggers at $H/L = 0.142$, whereas the book's limit corresponds to
+$H/L_{\text{linear}} = 0.142 \times 1.2 \approx 0.170$. The criterion and its
+source are left for the author to decide.
