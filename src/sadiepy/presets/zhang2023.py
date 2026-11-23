@@ -108,7 +108,7 @@ def zhang2023(
         et al.'s beta and C_D analysis (Fig. 8, Eq. 20, p. 9; M1 mean C_D 2.63, p. 10)
         is reproduced with about 0.5; the paper does not state this, so it is an
         inferred analysis convention, not a measured property. Root solid volume is
-        unaffected. See the reproduction notebook, section 7b.
+        unaffected.
 
     Returns
     -------

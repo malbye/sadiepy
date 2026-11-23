@@ -18,10 +18,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   geometries (Zhang Eqs. 19-20 and Eq. 4).
 - `propagate(..., cd_evaluation="incident" | "local", scale=...)` and Re rescaling
   between Froude scales; vegetation scaling to prototype.
-- Theory section 5 and the `02_zhang2023_reproduction` notebook.
-- `02b_zhang2023_flume_comparison` notebook: SADIE predictions against the gauge
-  heights of Zhang et al. (2023), Fig. 4, digitized into
-  `docs/examples/data/zhang2023_fig4_digitized.csv` (with the digitizing script).
+- Theory section 5.
 - Documentation site (Sphinx, PyData theme, MyST-NB; Read the Docs config) with the
   theory, an API reference and example notebooks in `docs/examples`
   (`01_quickstart.ipynb`); `[examples]` and `[docs]` extras; CI docs build.
