@@ -232,7 +232,17 @@ _CLOSURES = (
         scale=10.0,
         vegetation_type=_STEM_ROOT_CANOPY,
         components="stem+root+canopy",
-        citation=f"He et al. (2019), via {_TABLE3}",
+        citation=(
+            f"He, Chen & Jiang (2019), Coastal Eng. 152, 103509, Eq. (15), p. 6 "
+            f"(refs/He_et_al_2019.pdf); via {_TABLE3}"
+        ),
+        notes=(
+            "He et al. define KC = u_max T / b_v (Eqs. 6-7, p. 2), with u_max the orbital "
+            "velocity at the still-water surface and b_v the plant area per unit height; "
+            "their roots are an 8 cm polyethylene dome, not rods. Zhang et al. Table 3 "
+            "lists the fit as KC_d (u_bar and stem diameter), which SADIE follows; with "
+            "He's own definitions KC would differ."
+        ),
     ),
     DragClosure(
         "wang2022b_kc",
