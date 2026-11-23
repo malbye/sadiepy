@@ -9,21 +9,18 @@ volume, volume fraction and characteristic lengths of theory.md §5.1-5.2 follow
 import math
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
 from scipy.integrate import quad
 
-from sadiepy.core.drag import DragClosure
+from sadiepy.core.drag import DragClosure, LengthScale
 
 __all__ = ["LengthScale", "Layer", "Vegetation", "Width"]
 
 Width = float | Callable[[float], float]
 """A constant in SI units, or a function of the height s above the bed (m)."""
 
-LengthScale = Literal["d", "l_e", "l_ew", "r_v"]
-"""Named characteristic lengths (theory.md Eq. 5.3; ``"d"`` is the reference diameter)."""
 
 _QUAD_EPSREL = 1e-12
 
