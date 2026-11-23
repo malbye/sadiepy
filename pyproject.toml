@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sadiepy"
+version = "0.0.1.dev0"
+description = "Physics-based prediction of wave damping by vegetation, with tradespace tools for designing and analysing flume experiments."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Mallory Byers", email = "mgbyers@ucsc.edu" }]
+keywords = [
+    "ecohydraulics",
+    "wave attenuation",
+    "vegetation",
+    "coastal engineering",
+    "flume experiments",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
+
+[project.urls]
+Repository = "https://github.com/malbye/sadiepy"
+Issues = "https://github.com/malbye/sadiepy/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sadiepy"]
+
+# --- pytest -----------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = [
+    "validation: comparisons against published data (tolerances in tests/validation/targets.yaml)",
+]
+
+# --- ruff -------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "NPY", # numpy-specific rules
+    "D",   # pydocstyle
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+# --- mypy -------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src", "tests"]

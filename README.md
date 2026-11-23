@@ -1,9 +1,13 @@
-# SADIE: Simulation, Analysis, Design In Ecohydraulics
+# SADIE: Simulation, Analysis, and Design In Ecohydraulics
 
-<!-- Badges to add once each exists: PyPI version, Python versions, CI (unit tests), documentation, DOI (Zenodo). -->
+<!-- Badges to add once each exists: PyPI version, Python versions, documentation, DOI (Zenodo). -->
+[![CI](https://github.com/malbye/sadiepy/actions/workflows/ci.yml/badge.svg)](https://github.com/malbye/sadiepy/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > **Status:** early development (pre-release).
+
+Physics-based prediction of wave damping by vegetation, with tradespace tools for
+designing and analysing flume experiments.
 
 SADIE (`sadiepy`) predicts wave attenuation through patches of coastal vegetation
 (mangroves, salt marsh, seagrass, kelp, or user-defined) described as a vertical stack
@@ -12,15 +16,11 @@ framework. It supports flume experiment design before an experiment (tradespace
 analysis of candidate designs) and data analysis after it (reflection separation,
 damping-factor fitting, and drag-coefficient back-calculation).
 
-<!-- TODO: one-line description to be finalized. -->
-
 Repository: [https://github.com/malbye/sadiepy](https://github.com/malbye/sadiepy)
 
 ## Installation
 
-<!-- TODO: supported Python versions to be decided. -->
-
-`sadiepy` is not yet released on PyPI. Once released, it will install with:
+SADIE requires Python 3.10&ndash;3.12. `sadiepy` is not yet released on PyPI. Once released, it will install with:
 ```shell
 pip install sadiepy
 ```
@@ -34,13 +34,37 @@ cd sadiepy
 pip install -e .
 ```
 
-<!-- TODO: list optional dependency groups (e.g., dev, docs, examples) once pyproject.toml is written. -->
+Note: the following optional dependencies are available with bracket notation:
+ * `pip install -e ".[dev]"`: for development (unit testing, linting, and type checking)
 
 ## Development Tools
 
 Development tools are applicable when working with the source code.
 
-<!-- TODO: unit tests, documentation and code style sections, once tooling is decided. -->
+### Unit Tests
+
+Run unit tests with pytest (installed with the `dev` optional dependencies):
+```shell
+pytest
+```
+
+Run a subset of tests by file, or by a keyword expression with `-k`:
+```shell
+pytest tests/test_package.py -k "version"
+```
+
+### Code Style
+
+This project uses ruff for linting and formatting, applied from the project root:
+```shell
+ruff check .
+ruff format .
+```
+
+Type checking uses mypy in strict mode (configured in `pyproject.toml`):
+```shell
+mypy
+```
 
 ## License
 

@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata from this file."
-title: "SADIE: Simulation, Analysis, Design In Ecohydraulics"
+title: "SADIE: Simulation, Analysis, and Design In Ecohydraulics"
 type: software
 authors:
   - given-names: Mallory
