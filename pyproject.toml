@@ -43,8 +43,8 @@ packages = ["src/sadiepy"]
 
 # --- pytest -----------------------------------------------------------------
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = ["-ra", "--strict-markers", "--strict-config"]
+testpaths = ["tests", "src"]
+addopts = ["-ra", "--strict-markers", "--strict-config", "--doctest-modules"]
 markers = [
     "validation: comparisons against published data (tolerances in tests/validation/targets.yaml)",
 ]

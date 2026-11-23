@@ -6,6 +6,9 @@ designing and analysing flume experiments.
 
 from importlib.metadata import version as _version
 
+from sadiepy.units import Water
+from sadiepy.warnings import ExtrapolationWarning, ValidityWarning
+
 __version__ = _version("sadiepy")
 
-__all__ = ["__version__"]
+__all__ = ["ExtrapolationWarning", "ValidityWarning", "Water", "__version__"]
