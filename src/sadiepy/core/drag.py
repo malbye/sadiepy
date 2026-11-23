@@ -253,7 +253,18 @@ _CLOSURES = (
         scale=10.0,
         vegetation_type=_STEM_ROOT,
         components="stem+root",
-        citation=f"Wang et al. (2022b), via {_TABLE3}",
+        citation=(
+            "Wang, Yin & Liu (2022b), Appl. Ocean Res. 118, 102974, Eq. (7), p. 11 "
+            f"(refs/Wang_et_al_2022b.pdf); via {_TABLE3}"
+        ),
+        notes=(
+            "Wang et al. define KC_rv = u_p T / r_v (p. 11) with the pore velocity "
+            "u_p = u_m / (1 - phi), u_m the maximum orbital velocity at the vegetation top "
+            "(p. 2), r_v = (pi/4)(1 - phi)/phi b_v and phi = pi N b_v^2 / 4, where b_v = d* = "
+            "A_f / (N h) for mangrove models (p. 6). SADIE follows Zhang et al. (u_bar and "
+            "r_v from DBH and SVF, Eq. 11), so KC_rv differs from Wang's. Wang states the "
+            "range 0.02 <= KC_rv <= 0.28 (p. 12); Table 3 gives 0.01-0.28."
+        ),
     ),
     DragClosure(
         "chang2022_kc",
