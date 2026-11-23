@@ -202,9 +202,9 @@ def test_reynolds_and_kc() -> None:
 
 @pytest.mark.parametrize(
     ("H", "T", "h"),
-    # Corners of the Zhang et al. (2023) test range (H 0.04-0.16 m, T 1.0-2.0 s,
-    # h 0.3-0.5 m), all well inside the breaking limits.
-    [(0.04, 1.0, 0.5), (0.16, 2.0, 0.5), (0.08, 1.4, 0.4), (0.04, 2.0, 0.3)],
+    # Moderate waves within the Zhang et al. (2023) parameter ranges; the most
+    # nonlinear combinations are flagged (see the nonlinearity tests below).
+    [(0.04, 1.0, 0.5), (0.16, 1.4, 0.5), (0.08, 1.4, 0.4), (0.04, 2.0, 0.5)],
 )
 def test_no_warning_for_moderate_waves(H: float, T: float, h: float) -> None:
     with warnings.catch_warnings():
@@ -224,12 +224,50 @@ def test_steepness_limited_breaking_warns() -> None:
         RegularWave(H=0.25, T=1.0, depth=10.0)
 
 
-def test_ursell_check_is_off_by_default_and_warns_when_set() -> None:
+def test_nonlinearity_warning_uses_exact_trough_criterion() -> None:
+    # H = 0.16 m, T = 2.0 s, h = 0.5 m: Ur ≈ 21 < 26.3 (shallow-water form), but the
+    # exact criterion (theory.md Eq. 2.15) is violated: ka ≈ 0.124 > 0.106.
+    with pytest.warns(ValidityWarning, match="secondary crest"):
+        wave = RegularWave(H=0.16, T=2.0, depth=0.5)
+    assert wave.ursell < 8 * math.pi**2 / 3
+    assert wave.k * wave.a > wave.trough_bump_limit
+
+
+def test_trough_criterion_limits() -> None:
+    # Shallow water: limit -> (kh)³/3 (D&D Eq. 11.42); deep water: limit -> 1/2.
+    import warnings as w
+
+    with w.catch_warnings():
+        w.simplefilter("ignore")
+        shallow = RegularWave(H=1e-6, T=1e3, depth=0.1)
+        deep = RegularWave(H=0.01, T=1.0, depth=50.0)
+    assert shallow.trough_bump_limit == pytest.approx(shallow.kh**3 / 3, rel=1e-6)
+    assert deep.trough_bump_limit == pytest.approx(0.5, rel=1e-12)
+
+
+def test_second_order_ratio_shallow_limit_and_hand_value(wave: RegularWave) -> None:
+    # Hand value from D&D Eq. (11.34) written out independently.
+    kh = wave.kh
+    r = 3 / 8 * wave.k * 0.04 * math.cosh(2 * kh) / (math.cosh(kh) * math.sinh(kh) ** 3)
+    assert wave.second_order_ratio == pytest.approx(r, rel=1e-14)
+    # Shallow water: R -> 3 Ur / (64 pi²) (D&D Eq. 11.37).
+    import warnings as w
+
+    with w.catch_warnings():
+        w.simplefilter("ignore")
+        shallow = RegularWave(H=1e-6, T=1e3, depth=0.1)
+    assert shallow.second_order_ratio == pytest.approx(
+        3 * shallow.ursell / (64 * math.pi**2), rel=1e-5
+    )
+
+
+def test_optional_ursell_max_warns_when_set() -> None:
+    wave_args = {"H": 0.04, "T": 1.4, "depth": 0.4}  # Ur ≈ 3.6, no other issues
     with warnings.catch_warnings():
         warnings.simplefilter("error")
-        RegularWave(H=0.1, T=4.0, depth=0.5)  # Ur ≈ 60, no limit set
+        RegularWave(**wave_args)
     with pytest.warns(ValidityWarning, match="Ursell"):
-        RegularWave(H=0.1, T=4.0, depth=0.5, ursell_max=10.0)
+        RegularWave(**wave_args, ursell_max=1.0)
 
 
 def test_invalid_height_raises() -> None:

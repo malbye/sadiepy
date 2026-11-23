@@ -197,9 +197,9 @@ class RegularWave:
     depth : float
         Still-water depth h, in m. Must be positive.
     ursell_max : float or None, optional
-        Ursell number above which linear theory is flagged as questionable.
-        TODO(verify): no sourced default yet (theory.md §2.10); ``None`` (the
-        default) disables this check.
+        Optional extra threshold: warn if the Ursell number exceeds it. ``None``
+        (default) disables this check. Nonlinearity is always checked with
+        theory.md Eq. (2.15) regardless.
 
     Examples
     --------
@@ -364,6 +364,26 @@ class RegularWave:
         """Ursell number H L² / h³ (theory.md Eq. 2.13)."""
         return ursell(self.H, self.L, self.depth)
 
+    @property
+    def second_order_ratio(self) -> float:
+        """Ratio R of second- to first-order velocity potential (theory.md Eq. 2.14).
+
+        Dean & Dalrymple (1991), Eq. (11.34), p. 303 (``refs/Dean_Dalrymple_1991.pdf``).
+        Linear theory requires R << 1.
+        """
+        kh = self.kh
+        return 0.375 * self.k * self.a * math.cosh(2.0 * kh) / (math.cosh(kh) * math.sinh(kh) ** 3)
+
+    @property
+    def trough_bump_limit(self) -> float:
+        """Largest ka with no secondary trough crest at second order (theory.md Eq. 2.15).
+
+        ``sinh³(kh) / (cosh(kh) (2 + cosh(2kh)))``; Dean & Dalrymple (1991),
+        Eq. (11.41), p. 304 (``refs/Dean_Dalrymple_1991.pdf``).
+        """
+        kh = self.kh
+        return math.sinh(kh) ** 3 / (math.cosh(kh) * (2.0 + math.cosh(2.0 * kh)))
+
     def validity_issues(self) -> list[str]:
         """List the validity limits of theory.md §2.10 that this wave violates.
 
@@ -383,6 +403,14 @@ class RegularWave:
             issues.append(
                 f"H/L = {self.steepness:.3g} exceeds the steepness-limited breaking "
                 f"limit 0.142 tanh(kh) = {steepness_limit:.3g} (Miche form)"
+            )
+        ka = self.k * self.a
+        if ka > self.trough_bump_limit:
+            issues.append(
+                f"ka = {ka:.3g} exceeds {self.trough_bump_limit:.3g}, where second-order "
+                "Stokes theory predicts a secondary crest in the trough (Dean & Dalrymple "
+                f"1991, Eq. 11.41; Ur = {self.ursell:.3g}, R = {self.second_order_ratio:.3g}): "
+                "nonlinearity is strong and linear wave theory is unreliable"
             )
         if self.ursell_max is not None and self.ursell > self.ursell_max:
             issues.append(
