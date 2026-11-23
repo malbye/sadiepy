@@ -390,3 +390,217 @@ $H/L_{\text{linear}} = 0.142 \times 1.2 \approx 0.170$. The author chose the
 Miche form (2026-11-23): it applies at every depth and is the more conservative
 of the two in deep water. Its source remains `TODO(verify)` until a reference that
 states the tanh form is in `refs/`.
+
+---
+
+## 3. Wave damping by vegetation
+
+`sadiepy.core.solver` predicts how a regular wave decays across a patch of
+vegetation described as a vertical stack of layers. The framework is that of
+Dalrymple, Kirby & Hwang (1984) as used by Zhang et al. (2023), Eqs. (1)–(4),
+pp. 2–3 (`refs/Zhang_et_al_2023.pdf`), generalised here to several layers.
+
+**Assumptions.** Flat bed of constant depth $h$ (so $k$, $c_g$ are constant along
+the patch); linear waves (§2); rigid vegetation elements (flexibility is M3); the
+orbital velocity is that of the undisturbed wave (§2.7), i.e. the vegetation does
+not modify the velocity profile; drag is the only dissipation (bed friction and
+breaking are removed by bare-bed subtraction, M4); the wave propagates in $+x$
+starting at $x = 0$ with height $H_0$.
+
+### 3.1 Energy balance
+
+With no reflection and a steady wave field, energy conservation across the patch is
+
+$$
+\frac{d}{dx}\left(E\,c_g\right) = -\varepsilon_D ,
+\tag{3.1}
+$$
+
+(Zhang et al. 2023, Eq. (1), p. 2), where $E c_g$ is the energy flux (2.12) and
+$\varepsilon_D$ is the time-averaged rate of energy dissipation per unit bed area
+(W/m²).
+
+### 3.2 Drag dissipation
+
+Each element feels a drag force per unit height (Morison drag)
+$f = \tfrac{1}{2}\rho\,C_D\,b(s)\,u\,|u|$, where $b(s)$ is the element's frontal
+width at height $s$. The rate of work done by the fluid on it is $f\,u$. The
+inertia force is proportional to $\partial u/\partial t$, which is $90°$ out of
+phase with $u$, so its work averages to zero over a period and it is omitted.
+
+A layer $i$ occupies $s_{b,i} \le s \le s_{t,i}$ and has $N_i$ elements per m² of
+bed, each with frontal width $b_i(s)$ and drag coefficient $C_{D,i}$. Only the
+submerged part dissipates energy, $s_{b,i} \le s \le s^*_{t,i}$ with
+$s^*_{t,i} = \min(s_{t,i}, h)$; a layer with $s_{b,i} \ge h$ contributes nothing.
+Summing over elements and layers,
+
+$$
+\varepsilon_D = \sum_i \Big\langle \int_{s_{b,i}}^{s^*_{t,i}}
+\tfrac{1}{2}\rho\,C_{D,i}\,N_i\,b_i(s)\,|u|^3\,ds \Big\rangle
+\tag{3.2}
+$$
+
+(cf. Zhang et al. 2023, Eq. (2), p. 3, where $A$ plays the role of $N\,b$).
+
+### 3.3 Period average of $|\cos\theta|^3$
+
+With $u = u_m(s)\cos\theta$ (2.8), $\langle|u|^3\rangle = u_m^3\,\langle|\cos\theta|^3\rangle$.
+By symmetry the four quarter-periods contribute equally, so
+
+$$
+\langle|\cos\theta|^3\rangle
+= \frac{1}{2\pi}\int_0^{2\pi}|\cos\theta|^3\,d\theta
+= \frac{4}{2\pi}\int_0^{\pi/2}\cos^3\theta\,d\theta
+= \frac{2}{\pi}\cdot\frac{2}{3}
+= \frac{4}{3\pi},
+\tag{3.3}
+$$
+
+using $\int_0^{\pi/2}\cos^3\theta\,d\theta = \int_0^1 (1 - v^2)\,dv = 2/3$
+(substituting $v = \sin\theta$). Eq. (3.2) becomes
+
+$$
+\varepsilon_D = \sum_i \varepsilon_i,
+\qquad
+\varepsilon_i = \frac{2}{3\pi}\,\rho\,C_{D,i}\,N_i
+\int_{s_{b,i}}^{s^*_{t,i}} b_i(s)\,u_m(s)^3\,ds .
+\tag{3.4}
+$$
+
+### 3.4 Constant-width layers
+
+Let $S(x) = \sinh^3 x + 3\sinh x$. Then $S'(x) = 3\sinh^2 x\cosh x + 3\cosh x
+= 3\cosh x\,(\sinh^2 x + 1) = 3\cosh^3 x$, so
+
+$$
+\int_{s_b}^{s_t}\cosh^3(ks)\,ds = \frac{S(k s_t) - S(k s_b)}{3k}.
+\tag{3.5}
+$$
+
+With $u_m(s) = \dfrac{H\omega}{2\sinh kh}\cosh ks$ (2.8) and constant $b_i$,
+Eq. (3.4) gives
+
+$$
+\varepsilon_i = \frac{2}{3\pi}\,\rho\,C_{D,i}\,N_i\,b_i
+\left(\frac{H\omega}{2\sinh kh}\right)^3
+\frac{S(k s^*_{t,i}) - S(k s_{b,i})}{3k}
+= A_i\,H^3 ,
+\tag{3.6}
+$$
+
+where $A_i$ (units W/m⁵ = kg m⁻³ s⁻³) does not depend on $H$ when $C_{D,i}$ is
+constant.
+
+**Variable width.** When $b_i(s)$ is a function (e.g. the inverted-triangle
+canopy), the integral in (3.4) is evaluated numerically
+(`scipy.integrate.quad`). For constant $b_i$ the numerical and analytic (3.5)
+results must agree (M1 test 5).
+
+### 3.5 Hyperbolic decay for constant $C_D$
+
+If every $C_{D,i}$ is constant, $\varepsilon_D = A H^3$ with $A = \sum_i A_i$.
+With $E = \rho g H^2/8$ (2.11) and $c_g$ constant, (3.1) becomes
+
+$$
+\frac{\rho g c_g}{8}\,\frac{d(H^2)}{dx} = \frac{\rho g c_g}{4}\,H\frac{dH}{dx} = -A H^3
+\quad\Longrightarrow\quad
+\frac{d}{dx}\left(\frac{1}{H}\right) = -\frac{1}{H^2}\frac{dH}{dx} = \frac{4A}{\rho g c_g}.
+$$
+
+Integrating from $H(0) = H_0$:
+
+$$
+H(x) = \frac{H_0}{1 + \beta x},
+\qquad
+\beta = \frac{4 A H_0}{\rho g c_g},
+\tag{3.7}
+$$
+
+(Zhang et al. 2023, Eq. (3), p. 3), with $\beta$ in m⁻¹. Note that $\beta$ depends
+on $H_0$ but not on $\rho$, since $A \propto \rho$.
+
+### 3.6 Reduction to Zhang et al. Eq. (4)
+
+For one constant-width layer on $[0, h_{vs}]$ with $b = D$, combining (3.6) and
+(3.7):
+
+$$
+\beta = \frac{4H_0}{\rho g c_g}\cdot\frac{2}{3\pi}\,\rho\,C_D N D\,
+\frac{\omega^3}{8\sinh^3 kh}\cdot\frac{S(kh_{vs})}{3k}
+= \frac{C_D D N H_0\,\omega^3\,S(kh_{vs})}{9\pi\,g\,c_g\,k\sinh^3 kh}.
+$$
+
+Substituting $c_g = \dfrac{\omega}{2k}\cdot\dfrac{\sinh 2kh + 2kh}{\sinh 2kh}$ (2.7),
+then $\omega^2/g = k\tanh kh$ (2.2) and
+$\sinh 2kh\,\tanh kh/\sinh^3 kh = 2/\sinh kh$:
+
+$$
+\beta = \frac{4}{9\pi}\,C_D D N H_0\,k\,
+\frac{\sinh^3(kh_{vs}) + 3\sinh(kh_{vs})}{(\sinh 2kh + 2kh)\sinh kh},
+\tag{3.8}
+$$
+
+which is Zhang et al. (2023), Eq. (4), p. 3. The layered solver must reproduce
+(3.8) to $10^{-10}$ for a single uniform layer (M1 test 3).
+
+**Note on $D$ versus $\bar D$.** Zhang et al. write Eq. (4) with $\bar D$, "the
+depth averaged projected area", defined for the mangrove tree as
+$\bar D = \frac{1}{h}\int A(z)\,dz$ and equal to the diameter $d$ for a cylinder.
+For an emergent cylinder these agree, but for a submerged element ($h_{vs} < h$)
+$\frac{1}{h}\int A\,dz = d\,h_{vs}/h$, which would count the submergence twice
+(it is already in $S(kh_{vs})$). The layered solver avoids the issue by
+integrating the actual width profile $b_i(s)$ (3.4); how $\bar D$ enters Zhang's
+back-calculated $C_D$ values matters when their closures are applied (M2) and is
+an open question for the author.
+
+### 3.7 Additivity of $\beta$ across layers
+
+From (3.7), $\beta = \frac{4H_0}{\rho g c_g}\sum_i A_i = \sum_i \beta_i$ with
+$\beta_i = 4 A_i H_0 / (\rho g c_g)$: **damping factors add** when every layer has
+a constant $C_D$, because the dissipation rates add (3.4).
+
+*Layer splitting.* Splitting a layer at $s_m$ into two layers with the same
+$C_D$, $N$ and $b$ leaves $\beta$ unchanged, because the bracket in (3.6)
+telescopes: $[S(ks_m) - S(ks_b)] + [S(ks_t) - S(ks_m)] = S(ks_t) - S(ks_b)$
+(M1 test 4).
+
+*Zhang et al. Eq. (18).* Zhang et al. (2023), Eq. (18), p. 9, write
+$\frac{1}{1+\beta x} = \sum_i \frac{1}{1+\beta_i x}$ for canopy, stem and root. This
+is inconsistent with additive dissipation and fails even at $x = 0$, where the
+left side is 1 and the right side is 3. Their own Eqs. (19)–(20) (p. 9) compute
+each $\beta_i$ from Eq. (4) with the layer's bounds, which is the additive form
+used here (spec erratum E3).
+
+### 3.8 Drag coefficients that depend on the wave
+
+When $C_{D,i}$ depends on the local wave (through Re, KC or Ur, all functions of
+$H$), $\varepsilon_D$ is no longer proportional to $H^3$ and (3.7) does not hold.
+Writing (3.1) as $\frac{\rho g c_g}{4} H \frac{dH}{dx} = -\varepsilon_D(H)$:
+
+$$
+\frac{dH}{dx} = -\frac{4\,\varepsilon_D(H)}{\rho\,g\,c_g\,H},
+\qquad H(0) = H_0,
+\tag{3.9}
+$$
+
+which is integrated along the patch with `scipy.integrate.solve_ivp`. The solver
+reports $H(x)$ at the requested points, an effective $\beta$ from a least-squares
+fit of (3.7) to $H(x)$ with its residual, each layer's share of the dissipation,
+the range of Re, KC and Ur encountered, and any validity warnings.
+
+**Checks.** With constant $C_D$, (3.9) must reproduce (3.7) to $10^{-6}$
+(M1 test 6). Energy is conserved: integrating (3.1),
+$E c_g\big|_{0} - E c_g\big|_{B} = \int_0^B \varepsilon_D\,dx$ over a patch of
+length $B$, to a relative error below $10^{-6}$ (M1 test 7).
+
+### 3.9 Bulk versus per-layer drag coefficients
+
+Eq. (3.4) allows a different $C_{D,i}$ in each layer ("per-layer" $C_D$). Published
+closures such as those in Zhang et al. (2023), Table 3, instead give one **bulk**
+$C_D$ for the whole plant, defined with a particular frontal area and velocity
+scale. Using a bulk closure means setting $C_{D,i} = C_D$ in every layer, with
+$C_D$ evaluated from the closure's own definitions of Re, KC or Ur. Mathematically
+this is (3.4) with equal coefficients; the solver records which mode was used.
+Whether a bulk $C_D$ from one paper can be combined with this package's frontal
+areas depends on how that paper defined its area (see the $\bar D$ note in §3.6);
+the closures themselves are M2.
