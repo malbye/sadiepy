@@ -1,4 +1,4 @@
-"""Physical properties of water: density and viscosity from temperature and salinity.
+"""Physical constants and water properties (density, viscosity).
 
 All correlations are from Sharqawy, Lienhard & Zubair (2010),
 ``refs/Sharqawy_et_al_2010.pdf``; derivations and ranges in ``docs/theory.md`` §1.
@@ -10,11 +10,15 @@ from dataclasses import dataclass
 from sadiepy.warnings import ValidityWarning
 
 __all__ = [
+    "GRAVITY",
     "Water",
     "pure_water_dynamic_viscosity",
     "seawater_density",
     "seawater_dynamic_viscosity",
 ]
+
+GRAVITY = 9.80665
+"""Standard acceleration of gravity, in m/s² (3rd CGPM, 1901; theory.md §2)."""
 
 # Validity ranges (theory.md §1.2-1.3). Bounds are treated as inclusive (theory.md §1.6).
 _T_MIN_C = 0.0  # °C, Sharqawy et al. (2010) Table 2 Eq. (8) p. 357; Table 5 Eq. (22) p. 364
