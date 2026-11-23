@@ -36,6 +36,8 @@ pip install -e .
 
 Note: the following optional dependencies are available with bracket notation:
  * `pip install -e ".[dev]"`: for development (unit testing, linting, and type checking)
+ * `pip install -e ".[examples]"`: for running the example notebooks in `docs/examples`
+ * `pip install -e ".[docs]"`: for building the documentation site (includes `examples`)
 
 ## Development Tools
 
@@ -52,6 +54,15 @@ Run a subset of tests by file, or by a keyword expression with `-k`:
 ```shell
 pytest tests/test_package.py -k "version"
 ```
+
+### Documentation
+
+Build the documentation site (Sphinx; this also runs the example notebooks in
+`docs/examples`) from the project root with:
+```shell
+sphinx-build -b html docs docs/_build/html
+```
+then open `docs/_build/html/index.html`.
 
 ### Code Style
 

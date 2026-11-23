@@ -9,6 +9,9 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- Documentation site (Sphinx, PyData theme, MyST-NB; Read the Docs config) with the
+  theory, an API reference and example notebooks in `docs/examples`
+  (`01_quickstart.ipynb`); `[examples]` and `[docs]` extras; CI docs build.
 - `Water`: seawater density and viscosity from temperature and salinity (g/kg),
   after Sharqawy et al. (2010), with validity warnings.
 - `RegularWave` and `core.waves`: linear wave theory (dispersion solver, wavelength,
