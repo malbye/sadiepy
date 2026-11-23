@@ -264,3 +264,6 @@ Temporary Items
 
 # Claude Code project files (local only)
 .claude/
+
+# Reference papers (copyrighted; see refs/README.md for citations and links)
+refs/*.pdf
