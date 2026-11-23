@@ -832,3 +832,40 @@ $\beta_{rr}/(1 + \beta_{rc} + \beta_{rr})$ and the stem share is
 $1/(1 + \beta_{rc} + \beta_{rr})$. For the limits $\beta_{rc} \to 3.7$ and $\beta_{rr} \to 1.4$
 (Zhang et al. 2023, p. 9) these are 61 %, 23 % and 16 % for canopy, **root** and
 **stem**; the paper's text lists them as canopy, stem, root (spec erratum E4).
+
+### 5.7 Zhang's empirical damping model (HSVF and HSVI)
+
+Besides the drag closures, Zhang et al. (2023) predict $\beta$ directly from an
+empirical index (Eqs. 12–17, pp. 8–9). The hydraulic submerged volume fraction is
+
+$$
+\mathrm{HSVF} = \mathrm{SVF}\cdot\frac{H}{L}\cdot\frac{B}{L}\cdot\frac{h_{vs}}{h},
+\tag{5.7}
+$$
+
+with SVF from (5.2), $H$ the incident height, $L$ the wavelength, $B$ the patch length
+and $h_{vs} = \min(h_v, h)$ (Zhang Eq. 12). Fitted separately for each model,
+$\beta = \psi\,\mathrm{HSVF}$, with $\psi = 199.94 \pm 14.48$ (M1), $833.82 \pm 34.07$ (M2)
+and $1319.90 \pm 54.23$ m⁻¹ (M3) (Eqs. 13–15; ± is the standard error of the mean).
+The hydraulic submerged volume index combines the canopy and cylindrical parts,
+
+$$
+\mathrm{HSVI} = \mathrm{HSVF}\,\big(c_1\,\mathrm{SVF}_{ca} + c_2\,\mathrm{SVF}_{cy}\big),
+\qquad c_1 = 1.6,\; c_2 = 1.0,
+\tag{5.8}
+$$
+
+and one fit covers all three models, $\beta = (6.67\times10^{4} \pm 2.20\times10^{3})\,\mathrm{HSVI}$
+(Eqs. 16–17; erratum E2: the exponents are clear in the typeset PDF). The paper does
+not define $\mathrm{SVF}_{ca}$ and $\mathrm{SVF}_{cy}$ beyond "submerged volume fraction of
+the canopy part" and "of the cylindrical part". Here they are the submerged solid
+volumes of the canopy and of the stems + roots per unit water volume, so that
+$\mathrm{SVF}_{ca} + \mathrm{SVF}_{cy} = \mathrm{SVF}$. This reading reproduces the axis
+ranges of Fig. 7 (HSVI up to about $2\times10^{-5}$) and Fig. 6 (HSVF up to about
+$0.95\times10^{-3}$). Reading them as shares of SV (summing to 1) would make HSVI about 50
+times larger.
+
+These are regressions, not physics. HSVF is dimensionless while $\beta$ has units of
+1/m, so $\psi$ and the Eq. (17) coefficient are tied to this 1:10 model, this patch
+length ($B = 2$ m) and this tree geometry. They reproduce the paper's analysis and do
+not transfer to other cases.

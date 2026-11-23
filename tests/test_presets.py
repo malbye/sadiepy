@@ -84,3 +84,37 @@ def test_rigid_cylinders() -> None:
     veg = sd.presets.rigid_cylinders(d=0.02, n_per_m2=100.0, height=0.5)
     assert veg.l_e(0.6) == pytest.approx(math.pi * 0.02 / 4)
     assert veg.frontal_area(0.6) == pytest.approx(100 * 0.02 * 0.5)
+
+
+# --- Empirical HSVF / HSVI model, Zhang et al. (2023) Eqs. (12)-(17) -----------------
+
+
+def test_hsvf_hsvi_ranges_match_figs_6_and_7() -> None:
+    from sadiepy.presets.zhang2023 import hsvf, hsvi, svf_parts
+
+    hsvf_max = {"M1": 0.0, "M2": 0.0, "M3": 0.0}
+    hsvi_max = 0.0
+    for t in TEST_MATRIX:
+        w = sd.RegularWave(t.H, t.T, t.h)
+        for c in t.configs:
+            if c == "M0":
+                continue
+            hsvf_max[c] = max(hsvf_max[c], hsvf(c, w))  # type: ignore[arg-type]
+            hsvi_max = max(hsvi_max, hsvi(c, w))  # type: ignore[arg-type]
+            cy, ca = svf_parts(c, t.h)  # type: ignore[arg-type]
+            assert cy + ca == pytest.approx(sd.presets.zhang2023(c).svf(t.h))  # type: ignore[arg-type]
+    # Fig. 6 (p. 9): HSVF axis to 1e-3, M3 largest point just below 1e-3, M1 below 0.5e-3.
+    assert 0.9e-3 < hsvf_max["M3"] < 1.0e-3
+    assert hsvf_max["M1"] < 0.5e-3
+    # Fig. 7a (p. 9): HSVI axis x1e-5, largest point near 2e-5.
+    assert 1.9e-5 < hsvi_max < 2.2e-5
+
+
+def test_hsvf_formula_by_hand() -> None:
+    from sadiepy.presets.zhang2023 import beta_hsvf, hsvf
+
+    w = sd.RegularWave(0.08, 1.4, 0.5)
+    svf = sd.presets.zhang2023("M3").svf(0.5)
+    expected = svf * (0.08 / w.L) * (2.0 / w.L) * (0.4 / 0.5)
+    assert hsvf("M3", w) == pytest.approx(expected, rel=1e-14)
+    assert beta_hsvf("M3", w) == pytest.approx(1319.90 * expected, rel=1e-14)

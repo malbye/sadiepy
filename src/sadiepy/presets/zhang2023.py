@@ -39,12 +39,16 @@ from dataclasses import dataclass
 from typing import Literal
 
 from sadiepy.core.vegetation import Layer, Vegetation
+from sadiepy.core.waves import RegularWave
 from sadiepy.scaling.froude import vegetation_to_prototype
 
 __all__ = [
     "CANOPY_AREA_FACTOR",
     "CANOPY_VOLUME",
     "FIG4_BETA",
+    "HSVI_COEFF",
+    "HSVI_WEIGHTS",
+    "PSI",
     "MODEL_SCALE",
     "PATCH_LENGTH",
     "PATCH_WIDTH",
@@ -52,6 +56,11 @@ __all__ = [
     "TEST_MATRIX",
     "Config",
     "ZhangTest",
+    "beta_hsvf",
+    "beta_hsvi",
+    "hsvf",
+    "hsvi",
+    "svf_parts",
     "zhang2023",
 ]
 
@@ -226,3 +235,87 @@ REPORTED_RANGES: dict[str, tuple[float, float]] = {
 }
 """Hydraulic ranges stated by Zhang et al. (2023): Conclusions (pp. 13-14) and
 Table 3 (p. 12). The two KC_d ranges disagree (spec erratum E5)."""
+
+
+# --- Empirical damping model, Zhang et al. (2023) Eqs. (12)-(17) ----------------------
+# refs/Zhang_et_al_2023.pdf, pp. 8-9; theory.md §5.7. Model scale (1:10), B = 2 m only.
+
+PSI: dict[str, tuple[float, float]] = {
+    "M1": (199.94, 14.48),
+    "M2": (833.82, 34.07),
+    "M3": (1319.90, 54.23),
+}
+"""beta = psi * HSVF: (psi, standard error) in 1/m for each model (Eqs. 13-15, p. 9)."""
+HSVI_WEIGHTS = (1.6, 1.0)
+"""(c1, c2) weighting canopy and cylindrical SVF in HSVI (Eq. 16, p. 9)."""
+HSVI_COEFF = (6.67e4, 2.20e3)
+"""beta = coeff * HSVI: (coefficient, standard error) in 1/m (Eq. 17, p. 9; erratum E2)."""
+
+
+def svf_parts(config: Config, depth: float) -> tuple[float, float]:
+    """Submerged volume fractions of the cylindrical part and the canopy (theory.md §5.7).
+
+    Parameters
+    ----------
+    config : {"M1", "M2", "M3"}
+        Model configuration.
+    depth : float
+        Still-water depth, m (model scale).
+
+    Returns
+    -------
+    tuple of float
+        (SVF_cy, SVF_ca): stem + root and canopy solid volume per unit water volume,
+        dimensionless; they sum to the SVF.
+    """
+    veg = zhang2023(config)
+    canopy = sum(
+        layer.n_per_m2 * layer.solid_volume(depth) for layer in veg.layers if layer.name == "canopy"
+    )
+    svf_ca = canopy / depth
+    return veg.svf(depth) - svf_ca, svf_ca
+
+
+def hsvf(config: Config, wave: RegularWave, patch_length: float = PATCH_LENGTH) -> float:
+    """Hydraulic submerged volume fraction SVF (H/L)(B/L)(h_vs/h) (Zhang Eq. 12; theory Eq. 5.7).
+
+    Parameters
+    ----------
+    config : {"M1", "M2", "M3"}
+        Model configuration.
+    wave : RegularWave
+        Incident wave at model scale.
+    patch_length : float, optional
+        Patch length B, m; default 2.0.
+
+    Returns
+    -------
+    float
+        HSVF, dimensionless.
+    """
+    h = wave.depth
+    h_vs = min(TREE_HEIGHT, h)
+    return zhang2023(config).svf(h) * wave.steepness * (patch_length / wave.L) * (h_vs / h)
+
+
+def hsvi(config: Config, wave: RegularWave, patch_length: float = PATCH_LENGTH) -> float:
+    """Hydraulic submerged volume index HSVF (c1 SVF_ca + c2 SVF_cy) (Zhang Eq. 16; Eq. 5.8)."""
+    svf_cy, svf_ca = svf_parts(config, wave.depth)
+    c1, c2 = HSVI_WEIGHTS
+    return hsvf(config, wave, patch_length) * (c1 * svf_ca + c2 * svf_cy)
+
+
+def beta_hsvf(config: Config, wave: RegularWave) -> float:
+    """Damping factor from the per-model fits beta = psi HSVF (Zhang Eqs. 13-15), 1/m.
+
+    Empirical, for the 1:10 model with B = 2 m only (theory.md §5.7).
+    """
+    return PSI[config][0] * hsvf(config, wave)
+
+
+def beta_hsvi(config: Config, wave: RegularWave) -> float:
+    """Damping factor from the unified fit beta = 6.67e4 HSVI (Zhang Eq. 17), 1/m.
+
+    Empirical, for the 1:10 model with B = 2 m only (theory.md §5.7).
+    """
+    return HSVI_COEFF[0] * hsvi(config, wave)
