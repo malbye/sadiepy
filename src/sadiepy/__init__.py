@@ -6,6 +6,7 @@ designing and analysing flume experiments.
 
 from importlib.metadata import version as _version
 
+from sadiepy import presets
 from sadiepy.core import drag
 from sadiepy.core.solver import PropagationResult, propagate
 from sadiepy.core.vegetation import Layer, Vegetation
@@ -26,5 +27,6 @@ __all__ = [
     "Water",
     "__version__",
     "drag",
+    "presets",
     "propagate",
 ]
