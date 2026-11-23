@@ -267,3 +267,7 @@ Temporary Items
 
 # Reference papers (copyrighted; see refs/README.md for citations and links)
 refs/*.pdf
+
+# Sphinx autosummary output
+docs/api/generated/
+docs/jupyter_execute/
