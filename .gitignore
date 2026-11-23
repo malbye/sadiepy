@@ -261,3 +261,6 @@ Temporary Items
 
 # iCloud generated files
 *.icloud
+
+# Claude Code project files (local only)
+.claude/
