@@ -59,7 +59,8 @@ $$
 - **Why this correlation:** it is the paper's recommended atmospheric-pressure
   density equation, it uses ITS-90 and absolute salinity directly (no scale
   conversion), and its range covers any laboratory flume or field condition.
-  The printed errata (last page of the PDF) correct only Eq. (6), which is not used.
+  The five correction notes at the end of the PDF fix Eqs. (6), (7), (14), (17) and
+  (21); none affects Eqs. (8), (22) or (23), which are the ones used here.
 
 ### 1.3 Dynamic viscosity
 
@@ -131,9 +132,11 @@ These values become unit tests for `units.Water`.
   Negative salinity is unphysical and raises `ValueError`.
 - **Density maximum:** the pure-water part of Eq. (1.1) peaks at $t \approx 1.67$ °C
   (where $a_2 + 2a_3 t + 3a_4 t^2 + 4a_5 t^3 = 0$), not at the ≈ 4 °C maximum of real
-  water. The resulting error is about 0.002 % (999.884 vs 999.900 kg/m³ at 4 and
-  0 °C), far inside the stated ±0.1 % accuracy and irrelevant for wave damping.
-  It does mean Eq. (1.1) should not be used to locate the density maximum.
+  water. This is consistent with the paper's statement that the pure-water part
+  deviates from IAPWS-95 by at most ±0.01 % (§2, p. 358): the fitted curve is
+  flatter than real water near its maximum, but the density error stays of that
+  order, far inside the stated ±0.1 % and irrelevant for wave damping. It does mean
+  Eq. (1.1) should not be used to locate the density maximum.
 - **Pressure:** both correlations are for atmospheric pressure (0.1 MPa). Flume and
   nearshore depths of a few metres change density by about $5 \times 10^{-4}$ %
   per metre of depth, which is negligible here.
@@ -232,7 +235,11 @@ $$
 
 This is exact in both limits: for $y \gg 1$, $\tanh y \to 1$ and $x_0 \to y$
 (the deep-water root, since $\tanh x \to 1$); for $y \ll 1$, $\tanh y \approx y$
-and $x_0 \to \sqrt{y}$ (the shallow-water root of $x^2 = y$). In between it is
+and $x_0 \to \sqrt{y}$ (the shallow-water root of $x^2 = y$). Eq. (2.4) is the
+explicit approximation of Eckart (1952), $L \approx L_0\sqrt{\tanh(2\pi h/L_0)}$ with
+$L_0 = gT^2/2\pi$, rewritten in terms of $x$ and $y$ (named in the project spec §2.2;
+`TODO(verify)`: primary source not yet in `refs/`). It is used only as a starting
+point, so it does not affect the converged result. In between the limits it is
 within 5 % of the root (checked numerically for $10^{-6} \le y \le 10^{4}$), so Newton's method
 
 $$
@@ -620,7 +627,8 @@ prototype/model ratio of a quantity $q$:
 | Length $\ell$ ($H$, $h$, $L$, $d$, $x$) | definition | $\lambda$ |
 | Velocity $u$ | $\mathrm{Fr}$ equal $\Rightarrow u \propto \sqrt{\ell}$ | $\lambda^{1/2}$ |
 | Time $T$ | $\ell / u$ | $\lambda^{1/2}$ |
-| Wavenumber $k$, damping factor $\beta$ | 1/length | $\lambda^{-1}$ |
+| Wavenumber $k$ | 1/length | $\lambda^{-1}$ |
+| Damping factor $\beta$ | 1/length, **only if $C_D$ is the same at both scales** | $\lambda^{-1}$ |
 | Force | $\rho\,u^2\ell^2$ | $\lambda^{3}$ |
 | $\mathrm{Re} = u\ell/\nu$ | same $\nu$ | $\lambda^{1/2}\cdot\lambda = \lambda^{3/2}$ |
 | $\mathrm{KC} = uT/\ell$ | | $\lambda^{1/2}\cdot\lambda^{1/2}/\lambda = 1$ |
@@ -630,6 +638,8 @@ prototype/model ratio of a quantity $q$:
 The dispersion relation (2.2) is itself Froude-consistent: scaling $h$ by
 $\lambda$ and $T$ by $\lambda^{1/2}$ leaves $y = \omega^2 h / g$ unchanged, so $kh$
 is unchanged and $k$ scales as $\lambda^{-1}$. Hence KC and Ur are preserved and Re
-is distorted by $\lambda^{3/2}$ (M1 test 8). These are the scalings listed in the
+is distorted by $\lambda^{3/2}$ (M1 test 8). Because $C_D$ generally depends on Re,
+a model's $C_D$ (and hence $\beta\lambda$) need not equal the prototype's; this scale
+effect is why closures fitted at one scale are re-evaluated at another (spec §2.5). These are the scalings listed in the
 project spec §2.7; the Cauchy-number row is used only from M3 and its exact
 definition is still to be verified against Luhar & Nepf (2016).
