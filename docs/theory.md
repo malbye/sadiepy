@@ -378,9 +378,50 @@ $H/h \ll 1$. The code emits `ValidityWarning` (never stops silently) when:
 |---|---|---|
 | Depth-limited breaking | $H/h > 0.78$ | Dean & Dalrymple (1991), Eq. (4.122a), p. 113 (McCowan, 1894), restated as Eq. (12.11), p. 335 for mild slopes; `refs/Dean_Dalrymple_1991.pdf` |
 | Steepness-limited breaking | $H/L > 0.142\tanh kh$ | Miche (1944) form, chosen by the author (2026-11-23). `TODO(verify)`: citable source for the tanh form; see note below |
-| Nonlinearity | $\mathrm{Ur} > \mathrm{Ur}_{\max}$ | `TODO(verify)`: default $\mathrm{Ur}_{\max}$ and its source; options to be presented at the M1 checkpoint |
+| Nonlinearity | $ka > \dfrac{\sinh^3 kh}{\cosh kh\,(2 + \cosh 2kh)}$ | Dean & Dalrymple (1991), Eq. (11.41), p. 304; see note below |
+| Nonlinearity (optional) | $\mathrm{Ur} > \mathrm{Ur}_{\max}$ | user-supplied threshold; off by default |
 
-$\mathrm{Ur}_{\max}$ is a documented, user-settable parameter.
+**Nonlinearity (author's decision, 2026-11-23).** Linear theory is the first term
+of the Stokes expansion. Dean & Dalrymple (1991, §11.2, pp. 303–304) give two
+measures of when the second-order term is no longer small:
+
+- *Series convergence.* The ratio of the second- to the first-order velocity
+  potential is
+  $$
+  R = \frac{3}{8}\,\frac{ka\,\cosh 2kh}{\cosh kh\,\sinh^3 kh}
+  \tag{2.14}
+  $$
+  (their Eq. 11.34), and the expansion requires $R \ll 1$. In shallow water
+  $R \to \frac{3}{64\pi^2}\,\mathrm{Ur}$ (their Eq. 11.37), so $R = 1$ at
+  $\mathrm{Ur} = 64\pi^2/3 \approx 210$ (their Eq. 11.38).
+- *Physical wave shape.* The second-order free surface (p. 303) is
+  $\eta = \frac{H}{2}\cos\theta + B\cos 2\theta$ with
+  $B = \frac{H^2 k\cosh kh\,(2 + \cosh 2kh)}{16\sinh^3 kh}$. Its curvature at the
+  trough ($\theta = \pi$) is $\eta_{xx} = k^2 H/2 - 4k^2 B$; when this is negative
+  the theory predicts a spurious secondary crest in the trough. The condition
+  $\eta_{xx} < 0$ rearranges to
+  $$
+  ka > \frac{\sinh^3 kh}{\cosh kh\,(2 + \cosh 2kh)}
+  \tag{2.15}
+  $$
+  (their Eqs. 11.40–11.41). In shallow water this is $ka > (kh)^3/3$, i.e.
+  $\mathrm{Ur} > 8\pi^2/3 \approx 26.3$ (their Eqs. 11.42–11.43), which is
+  8 times stricter than $R = 1$; at that point $R = 1/8$. In deep water the
+  limit tends to $ka = 1/2$, above the breaking steepness, so it never triggers
+  there (the steepness check covers deep water).
+
+`RegularWave` warns when (2.15) is violated: nonlinearity is then strong enough
+that even second-order Stokes theory gives an unphysical wave shape, so linear
+results (orbital velocities, and hence drag dissipation) are unreliable. Eq. (2.15)
+is used instead of a fixed Ur threshold because it is exact at every depth and has
+no free parameter; the shallow-water Ur form under-states nonlinearity at the
+intermediate depths of typical flume tests (e.g. $H = 0.16$ m, $T = 2.0$ s,
+$h = 0.5$ m: $kh = 0.77$, $\mathrm{Ur} = 21.1 < 26.3$, yet $ka = 0.124 > 0.106$).
+$R$ (2.14) is reported as a diagnostic, and a user may add a fixed
+$\mathrm{Ur}_{\max}$. Other published thresholds, not used here because their
+primary sources are not in `refs/`: Laitone (1962), Ur = 20 as a shallow-water
+limit of Stokes theory (as cited in the Coastal Engineering Manual, Part II-1);
+Hedges (1995), Ur ≈ 40 as the boundary between Stokes and cnoidal theories.
 
 **Depth-limited breaking.** Dean & Dalrymple (1991, p. 113) give McCowan's criterion
 $H_b = \kappa h_b$ with $\kappa = 0.78$, and note on p. 335 that beach slopes steeper
