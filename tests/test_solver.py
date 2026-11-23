@@ -2,14 +2,14 @@
 
 import math
 import warnings
+from collections.abc import Callable
 
 import numpy as np
 import pytest
-from scipy.integrate import trapezoid
+from scipy.integrate import quad, trapezoid
 
 from sadiepy import ExtrapolationWarning, Layer, RegularWave, Vegetation, Water, propagate
 from sadiepy.core import drag
-from sadiepy.core.solver import s_function
 from sadiepy.units import GRAVITY
 
 
@@ -28,7 +28,7 @@ def zhang_eq4(cd: float, d: float, n: float, wave: RegularWave, h_vs: float) -> 
         * n
         * wave.H
         * k
-        * s_function(k * h_vs)
+        * (math.sinh(k * h_vs) ** 3 + 3 * math.sinh(k * h_vs))
         / ((math.sinh(2 * k * h) + 2 * k * h) * math.sinh(k * h))
     )
 
@@ -141,16 +141,12 @@ def kc_closure() -> drag.DragClosure:
     return drag.custom("test_kc", lambda kc: 0.6 + (100.0 / kc) ** 1.2, "KC", length_scale=0.01)
 
 
-@pytest.mark.parametrize("method", ["analytic", "ode"])
-def test_energy_flux_loss_equals_dissipation_constant_cd(method: str) -> None:
+def test_energy_flux_loss_equals_dissipation_constant_cd_ode() -> None:
+    # Only the ODE branch is a real check: in the analytic branch the identity holds
+    # by construction once beta = 4 A H0 / (rho g c_g).
     wave = RegularWave(H=0.08, T=1.4, depth=0.4)
     res = propagate(
-        wave,
-        Vegetation(layers=(stems(),)),
-        2.0,
-        drag=2.0,
-        x_out=[0.0, 2.0],
-        method=method,  # type: ignore[arg-type]
+        wave, Vegetation(layers=(stems(),)), 2.0, drag=2.0, x_out=[0.0, 2.0], method="ode"
     )
     loss = res.energy_flux[0] - res.energy_flux[-1]
     assert res.cumulative_dissipation[-1] == pytest.approx(loss, rel=1e-6)
@@ -191,12 +187,16 @@ def test_extrapolation_warns() -> None:
     assert any("narrow" in m for m in res.warnings)
 
 
-def test_layer_fractions_sum_to_one() -> None:
+def test_ode_layer_fractions_match_analytic_beta_shares() -> None:
+    # The ODE integrates each layer's dissipation separately; with constant C_D its
+    # shares must equal the ratio of single-layer betas (theory.md §3.7).
     wave = RegularWave(H=0.08, T=1.4, depth=0.5)
-    veg = Vegetation(layers=(Layer("root", 0.0, 0.1, 1008.0, 0.005), stems()))
-    for d in (1.0, kc_closure()):
-        res = propagate(wave, veg, 2.0, drag=d)
-        assert sum(res.layer_fractions.values()) == pytest.approx(1.0, rel=1e-12)
+    root = Layer("root", 0.0, 0.1, 1008.0, 0.005)
+    stem = stems()
+    ode = propagate(wave, Vegetation(layers=(root, stem)), 2.0, drag=1.0, method="ode")
+    b_root = propagate(wave, Vegetation(layers=(root,)), 2.0, drag=1.0).beta
+    b_stem = propagate(wave, Vegetation(layers=(stem,)), 2.0, drag=1.0).beta
+    assert ode.layer_fractions["root"] == pytest.approx(b_root / (b_root + b_stem), rel=1e-8)
 
 
 def test_more_vegetation_more_damping() -> None:
@@ -243,3 +243,79 @@ def test_no_warnings_for_normal_case() -> None:
         warnings.simplefilter("error")
         res = propagate(wave, Vegetation(layers=(stems(),)), 2.0, drag=1.0)
     assert res.warnings == ()
+
+
+# --- First-principles dissipation (independent of theory.md Eqs. 3.3-3.6) ----------
+
+
+def beta_from_first_principles(
+    wave: RegularWave,
+    cd: float,
+    n: float,
+    width: Callable[[float], float],
+    s_b: float,
+    s_t: float,
+) -> float:
+    """beta = 4 eps(H0) / (rho g c_g H0²), with eps = <∫ ½ rho C_D N b |u| u u ds>.
+
+    u is taken from phi_x of the potential (theory.md Eq. 2.1), the period average and
+    the depth integral are done by quadrature, and c_g by a numerical d(omega)/dk.
+    """
+    rho = Water().rho
+    k, h, a, om = wave.k, wave.depth, wave.a, wave.omega
+    top = min(s_t, h)
+
+    def u(s: float, theta: float) -> float:
+        return G_ * a * k / om * math.cosh(k * s) / math.cosh(k * h) * math.cos(theta)
+
+    def per_height(s: float) -> float:
+        avg = quad(lambda th: abs(u(s, th)) ** 3, 0.0, 2 * math.pi, epsrel=1e-11)[0]
+        return float(0.5 * rho * cd * n * width(s) * avg / (2 * math.pi))
+
+    eps = quad(per_height, s_b, top, epsrel=1e-11)[0]
+
+    def omega_of_k(kk: float) -> float:
+        return math.sqrt(G_ * kk * math.tanh(kk * h))
+
+    dk = 1e-6 * k
+    cg = (omega_of_k(k + dk) - omega_of_k(k - dk)) / (2 * dk)
+    return float(4 * eps / (rho * G_ * cg * wave.H**2))
+
+
+G_ = GRAVITY
+
+
+@pytest.mark.parametrize(
+    ("depth", "s_b", "s_t", "width"),
+    [
+        (0.4, 0.0, 0.4, lambda s: 0.01),  # emergent stem
+        (0.5, 0.23, 0.40, lambda s: 0.145 * (s - 0.23) / 0.17),  # submerged canopy
+        (0.3, 0.23, 0.40, lambda s: 0.145 * (s - 0.23) / 0.17),  # canopy cut by surface
+        (0.5, 0.1, 0.3, lambda s: 0.02),  # layer with s_b > 0
+    ],
+)
+def test_beta_matches_first_principles(
+    depth: float, s_b: float, s_t: float, width: Callable[[float], float]
+) -> None:
+    wave = RegularWave(H=0.08, T=1.4, depth=depth)
+    layer = Layer("layer", s_b, s_t, 36.0, width)
+    res = propagate(wave, Vegetation(layers=(layer,)), 2.0, drag=1.3)
+    expected = beta_from_first_principles(wave, 1.3, 36.0, width, s_b, s_t)
+    assert res.beta == pytest.approx(expected, rel=1e-7)
+
+
+def test_constant_layer_above_surface_matches_clipped_callable() -> None:
+    wave = RegularWave(H=0.08, T=1.4, depth=0.4)
+    const = Layer("c", 0.1, 0.5, 36.0, 0.02)
+    func = Layer("c", 0.1, 0.5, 36.0, lambda s: 0.02)
+    b_c = propagate(wave, Vegetation(layers=(const,)), 2.0, drag=1.0).beta
+    b_f = propagate(wave, Vegetation(layers=(func,)), 2.0, drag=1.0).beta
+    assert b_f == pytest.approx(b_c, rel=1e-8)
+
+
+def test_numpy_scalar_drag_is_constant() -> None:
+    wave = RegularWave(H=0.08, T=1.4, depth=0.4)
+    res = propagate(wave, Vegetation(layers=(stems(),)), 2.0, drag=np.int64(1))
+    assert res.beta == pytest.approx(
+        propagate(wave, Vegetation(layers=(stems(),)), 2.0, drag=1.0).beta, rel=1e-15
+    )

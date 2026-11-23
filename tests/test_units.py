@@ -20,6 +20,30 @@ def test_fresh_water_20c_matches_hand_calculation() -> None:
     assert w.nu == pytest.approx(MU_20 / RHO_20, rel=1e-12)
 
 
+# Seawater at t = 20 °C, 35 g/kg (S = 0.035 kg/kg), term by term from Sharqawy et al.
+# (2010) Eq. (8) p. 357 and Eqs. (22)-(23) p. 364, coefficients re-typed from the PDF.
+_S, _T = 0.035, 20.0
+RHO_SEA_20 = RHO_20 + (
+    8.020e2 * _S
+    - 2.001 * _S * _T
+    + 1.677e-2 * _S * _T**2
+    - 3.060e-5 * _S * _T**3
+    - 1.613e-5 * _S**2 * _T**2
+)  # = 998.0154288 + 26.8955... kg/m³
+_A = 1.541 + 1.998e-2 * _T - 9.52e-5 * _T**2  # = 1.90252
+_B = 7.974 - 7.561e-2 * _T + 4.724e-4 * _T**2  # = 6.65076
+MU_SEA_20 = MU_20 * (1.0 + _A * _S + _B * _S**2)
+
+
+def test_seawater_20c_35gkg_matches_hand_calculation() -> None:
+    w = Water(temperature=20.0, salinity=35.0)
+    assert w.rho == pytest.approx(RHO_SEA_20, rel=1e-12)
+    assert w.mu == pytest.approx(MU_SEA_20, rel=1e-12)
+    # Pinned values, so a change in any coefficient digit is caught.
+    assert w.rho == pytest.approx(1024.911, abs=5e-4)
+    assert w.mu == pytest.approx(1.07663e-3, rel=1e-5)
+
+
 def test_fresh_water_20c_within_stated_accuracy_of_reference_values() -> None:
     w = Water(temperature=20.0, salinity=0.0)
     # IAPWS-95 pure water at 20 °C, 0.1 MPa: 998.21 kg/m³ (theory.md §1.5);

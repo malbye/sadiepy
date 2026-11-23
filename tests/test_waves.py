@@ -34,7 +34,7 @@ def test_dispersion_residual_below_1e_12(y: float) -> None:
 
 
 def test_deep_water_limit() -> None:
-    # kh ≈ 63 here, so tanh(kh) = 1 to machine precision and k = omega²/g.
+    # kh ≈ 100.6 here, so tanh(kh) = 1 to machine precision and k = omega²/g.
     T, h = 2.0, 100.0
     omega = 2.0 * math.pi / T
     assert float(wavenumber(T, h)) == pytest.approx(omega**2 / G, rel=1e-12)
@@ -118,6 +118,54 @@ def test_u_m_rejects_heights_outside_water_column(wave: RegularWave, s: float) -
         wave.u_m(s)
 
 
+def phi(wave: RegularWave, x: float, s: float, t: float) -> float:
+    """Velocity potential, theory.md Eq. (2.1), written out independently of the code."""
+    return (
+        G
+        * wave.a
+        / wave.omega
+        * math.cosh(wave.k * s)
+        / math.cosh(wave.kh)
+        * math.sin(wave.k * x - wave.omega * t)
+    )
+
+
+@pytest.mark.parametrize("s", [0.0, 0.13, 0.4])
+def test_u_m_equals_derivative_of_potential(wave: RegularWave, s: float) -> None:
+    # u = d(phi)/dx at the crest phase (theta = 0), by central differences.
+    dx = 1e-5
+    u = (phi(wave, dx, s, 0.0) - phi(wave, -dx, s, 0.0)) / (2 * dx)
+    assert float(wave.u_m(s)) == pytest.approx(u, rel=1e-8)
+
+
+def test_energy_density_from_potential(wave: RegularWave) -> None:
+    # Period-averaged kinetic + potential energy (theory.md §2.8), by quadrature over
+    # depth and phase, with u, w from finite differences of phi.
+    water = Water()
+    eps = 1e-6
+
+    def ke_density(s: float) -> float:
+        def ke(theta: float) -> float:
+            t = -theta / wave.omega  # x = 0, so theta = -omega t
+            u = (phi(wave, eps, s, t) - phi(wave, -eps, s, t)) / (2 * eps)
+            w = (phi(wave, 0, s + eps, t) - phi(wave, 0, s - eps, t)) / (2 * eps)
+            return 0.5 * water.rho * (u**2 + w**2)
+
+        return float(quad(ke, 0.0, 2 * math.pi, epsrel=1e-10)[0] / (2 * math.pi))
+
+    kinetic = quad(ke_density, 0.0, wave.depth, epsrel=1e-10)[0]
+    potential = 0.5 * water.rho * G * wave.a**2 * 0.5  # <rho g eta²/2>, eta = a cos(theta)
+    assert wave.energy(water) == pytest.approx(kinetic + potential, rel=1e-6)
+
+
+def test_wavenumber_mixed_deep_and_shallow_without_overflow() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        k = wavenumber([0.05, 1.0], [1000.0, 0.5])
+    omega = 2 * math.pi / 0.05
+    assert float(k[0]) == pytest.approx(omega**2 / G, rel=1e-12)
+
+
 def test_energy_density(wave: RegularWave) -> None:
     water = Water(20.0, 0.0)
     assert wave.energy(water) == pytest.approx(water.rho * G * 0.08**2 / 8.0, rel=1e-15)
@@ -129,7 +177,7 @@ def test_energy_flux_equals_pressure_work(wave: RegularWave) -> None:
     water = Water()
     k, h, a, om = wave.k, wave.depth, wave.a, wave.omega
     p_amp = water.rho * G * a / math.cosh(k * h)  # times cosh(ks) cos(theta)
-    u_amp = a * om / math.sinh(k * h)  # times cosh(ks) cos(theta)
+    u_amp = G * a * k / om / math.cosh(k * h)  # from phi_x, Eq. (2.1); times cosh(ks) cos(theta)
     integral, _ = quad(lambda s: math.cosh(k * s) ** 2, 0.0, h, epsabs=0, epsrel=1e-13)
     flux = 0.5 * p_amp * u_amp * integral  # <cos²> = 1/2
     assert wave.energy_flux(water) == pytest.approx(flux, rel=1e-12)
@@ -171,7 +219,7 @@ def test_depth_limited_breaking_warns() -> None:
 
 
 def test_steepness_limited_breaking_warns() -> None:
-    # Deep water (kh ≈ 25): limit ≈ 0.142; L ≈ 1.56 m, so H = 0.25 m gives H/L ≈ 0.16.
+    # Deep water (kh ≈ 40.3): limit ≈ 0.142; L ≈ 1.56 m, so H = 0.25 m gives H/L ≈ 0.16.
     with pytest.warns(ValidityWarning, match="steepness"):
         RegularWave(H=0.25, T=1.0, depth=10.0)
 
@@ -179,7 +227,7 @@ def test_steepness_limited_breaking_warns() -> None:
 def test_ursell_check_is_off_by_default_and_warns_when_set() -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("error")
-        RegularWave(H=0.1, T=4.0, depth=0.5)  # Ur ≈ 37, no limit set
+        RegularWave(H=0.1, T=4.0, depth=0.5)  # Ur ≈ 60, no limit set
     with pytest.warns(ValidityWarning, match="Ursell"):
         RegularWave(H=0.1, T=4.0, depth=0.5, ursell_max=10.0)
 
