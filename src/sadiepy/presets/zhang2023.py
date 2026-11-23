@@ -89,7 +89,11 @@ CANOPY_AREA_FACTOR: dict[str, float] = {"M2": 1.0, "M3": 2.0}
 """Multiplier on the triangular canopy frontal area (reproduces Fig. 3a; erratum E7)."""
 
 
-def zhang2023(config: Config, scale: Literal["model", "prototype"] = "model") -> Vegetation:
+def zhang2023(
+    config: Config,
+    scale: Literal["model", "prototype"] = "model",
+    root_frontal_factor: float = 1.0,
+) -> Vegetation:
     """Artificial mangrove model M1, M2 or M3 of Zhang et al. (2023).
 
     Parameters
@@ -98,6 +102,13 @@ def zhang2023(config: Config, scale: Literal["model", "prototype"] = "model") ->
         M1 stem + root; M2 + sparse canopy; M3 + dense canopy (Table 2, p. 5).
     scale : {"model", "prototype"}, optional
         Model scale (1:10, as built) or prototype scale (lengths times 10).
+    root_frontal_factor : float, optional
+        Multiplier in (0, 1] on the summed frontal width of the 28 roots per tree;
+        default 1.0, the root area as built and as plotted in Fig. 3a (p. 6). Zhang
+        et al.'s beta and C_D analysis (Fig. 8, Eq. 20, p. 9; M1 mean C_D 2.63, p. 10)
+        is reproduced with about 0.5; the paper does not state this, so it is an
+        inferred analysis convention, not a measured property. Root solid volume is
+        unaffected. See the reproduction notebook, section 7b.
 
     Returns
     -------
@@ -113,6 +124,8 @@ def zhang2023(config: Config, scale: Literal["model", "prototype"] = "model") ->
     """
     if config not in ("M1", "M2", "M3"):
         raise ValueError(f"config must be 'M1', 'M2' or 'M3', got {config!r}")
+    if not 0.0 < root_frontal_factor <= 1.0:
+        raise ValueError(f"root_frontal_factor must be in (0, 1], got {root_frontal_factor}")
     if scale not in ("model", "prototype"):
         raise ValueError(f"scale must be 'model' or 'prototype', got {scale!r}")
     layers = [
@@ -121,7 +134,7 @@ def zhang2023(config: Config, scale: Literal["model", "prototype"] = "model") ->
             0.0,
             ROOT_HEIGHT,
             ROOTS_PER_TREE * N_TREES,
-            ROOT_DIAMETER,
+            ROOT_DIAMETER * root_frontal_factor,
             solid_area=math.pi * ROOT_DIAMETER**2 / 4.0,
         ),
         Layer("stem", 0.0, TREE_HEIGHT, N_TREES, DBH, solid_area=math.pi * DBH**2 / 4.0),
@@ -143,7 +156,12 @@ def zhang2023(config: Config, scale: Literal["model", "prototype"] = "model") ->
         layers=tuple(layers),
         name=f"Zhang et al. (2023) {config}, 1:10 model",
         source="Zhang et al. (2023), Coastal Eng. 186, 104403, Table 1 and Fig. 3",
-        notes="Canopy frontal area doubled for M3 to match Fig. 3a (erratum E7).",
+        notes="Canopy frontal area doubled for M3 to match Fig. 3a (erratum E7)."
+        + (
+            f" Root frontal area x{root_frontal_factor:g} (inferred analysis convention)."
+            if root_frontal_factor != 1.0
+            else ""
+        ),
         reference_diameter=DBH,
     )
     if scale == "prototype":

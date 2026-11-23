@@ -118,3 +118,29 @@ def test_hsvf_formula_by_hand() -> None:
     expected = svf * (0.08 / w.L) * (2.0 / w.L) * (0.4 / 0.5)
     assert hsvf("M3", w) == pytest.approx(expected, rel=1e-14)
     assert beta_hsvf("M3", w) == pytest.approx(1319.90 * expected, rel=1e-14)
+
+
+def test_root_frontal_factor_scales_only_root_frontal_area() -> None:
+    full = sd.presets.zhang2023("M1")
+    half = sd.presets.zhang2023("M1", root_frontal_factor=0.5)
+    h = 0.4
+    root_full = full.layers[0].n_per_m2 * full.layers[0].frontal_area(h)
+    root_half = half.layers[0].n_per_m2 * half.layers[0].frontal_area(h)
+    assert root_half == pytest.approx(0.5 * root_full, rel=1e-14)
+    assert half.submerged_volume(h) == pytest.approx(full.submerged_volume(h), rel=1e-14)
+    assert "inferred" in half.notes
+    with pytest.raises(ValueError, match="root_frontal_factor"):
+        sd.presets.zhang2023("M1", root_frontal_factor=0.0)
+
+
+def test_half_root_area_reproduces_fig8_root_ratio_limit() -> None:
+    # Zhang et al. (2023), p. 9: beta_r / beta_s approaches 1.4 for Ur > 10 (Fig. 8).
+    # Diagnostic of the inferred convention, not a tuned target.
+    veg = sd.presets.zhang2023("M2", root_frontal_factor=0.5)
+    ratios = []
+    for t in TEST_MATRIX:
+        w = sd.RegularWave(t.H, t.T, t.h)
+        if w.ursell > 10 and t.h > 0.3:
+            f = sd.propagate(w, veg.layer_averaged(t.h), 2.0, drag=1.0).layer_fractions
+            ratios.append(f["root"] / f["stem"])
+    assert 1.0 < min(ratios) and max(ratios) < 1.5
