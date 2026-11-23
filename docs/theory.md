@@ -3,7 +3,7 @@
 Derivations and source equations behind every physics function in `sadiepy`.
 Equations are numbered `(section.n)`; code docstrings cite these numbers. Each
 equation taken from a paper also names the paper's file in `refs/` (see
-[refs/README.md](../refs/README.md)) and its equation number and page there.
+[refs/README.md](https://github.com/malbye/sadiepy/blob/main/refs/README.md)) and its equation number and page there.
 
 All quantities are in SI units unless stated otherwise.
 
