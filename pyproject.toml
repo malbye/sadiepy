@@ -78,3 +78,8 @@ convention = "numpy"
 python_version = "3.10"
 strict = true
 files = ["src", "tests"]
+
+# scipy ships no type stubs; avoid adding scipy-stubs as a dependency.
+[[tool.mypy.overrides]]
+module = ["scipy", "scipy.*"]
+ignore_missing_imports = true
