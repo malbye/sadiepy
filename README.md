@@ -2,7 +2,7 @@
 
 <!-- Badges to add once each exists: PyPI version, Python versions, documentation, DOI (Zenodo). -->
 [![CI](https://github.com/malbye/sadiepy/actions/workflows/ci.yml/badge.svg)](https://github.com/malbye/sadiepy/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/malbye/sadiepy/blob/main/LICENSE)
 
 > **Status:** early development (pre-release).
 
@@ -20,7 +20,7 @@ Repository: [https://github.com/malbye/sadiepy](https://github.com/malbye/sadiep
 
 ## Installation
 
-SADIE requires Python 3.10&ndash;3.12. `sadiepy` is not yet released on PyPI. Once released, it will install with:
+SADIE requires Python 3.10&ndash;3.12. Install the latest release from PyPI:
 ```shell
 pip install sadiepy
 ```
@@ -69,12 +69,12 @@ mypy
 ## License
 
 This project is licensed under the MIT License &mdash; see
-[LICENSE](LICENSE) for details.
+[LICENSE](https://github.com/malbye/sadiepy/blob/main/LICENSE) for details.
 
 ## Citation
 
 If you use SADIE in your research, please cite it using the metadata in
-[CITATION.cff](CITATION.cff).
+[CITATION.cff](https://github.com/malbye/sadiepy/blob/main/CITATION.cff).
 
 ## Contact
 
