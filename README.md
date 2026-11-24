@@ -58,10 +58,10 @@ A minimal example:
 ```python
 import sadiepy as sd
 
-wave = sd.RegularWave(H=0.08, T=1.4, depth=0.4)    # height (m), period (s), depth (m)
-veg = sd.presets.zhang2023("M3")                   # 1:10 mangrove model, Zhang et al. (2023)
+wave = sd.RegularWave(H=0.08, T=1.4, depth=0.4)  # height (m), period (s), depth (m)
+veg = sd.presets.zhang2023("M3")  # 1:10 mangrove model, Zhang et al. (2023)
 res = sd.propagate(wave, veg, patch_length=2.0, drag=1.0)
-print(res.beta, res.H)                             # damping factor (1/m), heights (m)
+print(res.beta, res.H)  # damping factor (1/m), heights (m)
 ```
 
 ## Development Tools
