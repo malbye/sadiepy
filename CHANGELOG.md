@@ -19,6 +19,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `propagate(..., cd_evaluation="incident" | "local", scale=...)` and Re rescaling
   between Froude scales; vegetation scaling to prototype.
 - Theory section 5.
+- Release workflow: publishing a GitHub release uploads the same version to PyPI.
 - `02_tour` notebook: a plain-English tour of every current capability, with figures.
 - `01_quickstart` notebook rewritten as a step-by-step tutorial covering every object, option, result field and error message.
 - Documentation site (Sphinx, PyData theme, MyST-NB; Read the Docs config) with the
