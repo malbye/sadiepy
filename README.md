@@ -3,7 +3,7 @@
 <!-- Badges to add once each exists: Python versions (after a final release), DOI (Zenodo). -->
 [![PyPI](https://img.shields.io/pypi/v/sadiepy.svg)](https://pypi.org/project/sadiepy/)
 [![CI](https://github.com/malbye/sadiepy/actions/workflows/ci.yml/badge.svg)](https://github.com/malbye/sadiepy/actions/workflows/ci.yml)
-[![Documentation](https://readthedocs.org/projects/sadiepy/badge/?version=latest)](https://sadiepy.readthedocs.io)
+[![Documentation](https://img.shields.io/readthedocs/sadiepy/latest)](https://sadiepy.readthedocs.io)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/malbye/sadiepy/blob/main/LICENSE)
 
 > **Status:** early development (pre-release).
