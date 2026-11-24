@@ -1,4 +1,4 @@
-# SADIE
+# SADIE documentation
 
 **Simulation, Analysis, and Design In Ecohydraulics.**
 

@@ -1,7 +1,8 @@
 # SADIE: Simulation, Analysis, and Design In Ecohydraulics
 
-<!-- Badges to add once each exists: PyPI version, Python versions, documentation, DOI (Zenodo). -->
+<!-- Badges to add once each exists: PyPI version and Python versions (after a final release), DOI (Zenodo). -->
 [![CI](https://github.com/malbye/sadiepy/actions/workflows/ci.yml/badge.svg)](https://github.com/malbye/sadiepy/actions/workflows/ci.yml)
+[![Documentation](https://readthedocs.org/projects/sadiepy/badge/?version=latest)](https://sadiepy.readthedocs.io)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/malbye/sadiepy/blob/main/LICENSE)
 
 > **Status:** early development (pre-release).
@@ -15,6 +16,8 @@ of layers, using linear wave theory and the Dalrymple et al. (1984) energy-dissi
 framework. It supports flume experiment design before an experiment (tradespace
 analysis of candidate designs) and data analysis after it (reflection separation,
 damping-factor fitting, and drag-coefficient back-calculation).
+
+Documentation: [https://sadiepy.readthedocs.io](https://sadiepy.readthedocs.io)
 
 Repository: [https://github.com/malbye/sadiepy](https://github.com/malbye/sadiepy)
 
