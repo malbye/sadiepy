@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sadiepy"
-version = "0.0.1.dev0"
+version = "0.0.2.dev0"
 description = "Physics-based prediction of wave damping by vegetation, with tradespace tools for designing and analysing flume experiments."
 readme = "README.md"
 requires-python = ">=3.10"

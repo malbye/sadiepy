@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.0.2.dev0] - 2026-11-23
+
 ### Added
 
 - Zhang et al. (2023) mangrove presets M1-M3 at model and prototype scale, with the
@@ -41,6 +43,13 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `scaling.froude`: Froude scale factors and model/prototype conversion.
 - `docs/theory.md` §1-4: water properties, linear wave theory, vegetation damping,
   Froude scaling.
+
+## [0.0.1.dev0] - 2026-11-22
+
+Name reservation on PyPI.
+
+### Added
+
 - Project scaffold: `pyproject.toml` (hatchling, `src/` layout), package skeleton
   (`core`, `presets`, `scaling`, `analysis`, `design`), smoke tests.
 - Tooling: pytest, ruff (lint and format), mypy (strict).

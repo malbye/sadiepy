@@ -9,4 +9,5 @@ authors:
     affiliation: "Independent Researcher, University of California, Santa Cruz"
 repository-code: "https://github.com/malbye/sadiepy"
 license: MIT
-version: 0.0.1.dev0
+version: 0.0.2.dev0
+date-released: 2026-11-23
