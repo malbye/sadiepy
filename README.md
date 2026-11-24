@@ -105,6 +105,14 @@ Type checking uses mypy in strict mode (configured in `pyproject.toml`):
 mypy
 ```
 
+### Releasing
+
+Releases are made from GitHub; PyPI is updated automatically. Bump `version` in
+`pyproject.toml` and add a `CHANGELOG.md` entry (merged through a pull request), then
+publish a GitHub release with the tag `v<version>` (e.g. `v0.1.0`). The `Release`
+workflow checks that the tag matches the version, runs the tests, builds the package
+and uploads it to PyPI (trusted publishing).
+
 ## License
 
 This project is licensed under the MIT License &mdash; see
