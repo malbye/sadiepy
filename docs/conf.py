@@ -27,6 +27,7 @@ myst_heading_anchors = 3
 nb_execution_mode = "cache"  # run notebooks at build time; cache unchanged ones
 nb_execution_raise_on_error = True  # a failing notebook fails the build
 nb_execution_timeout = 300
+nb_render_markdown_format = "myst"  # render Markdown cell outputs (e.g. tables) with MyST
 
 # --- API reference ----------------------------------------------------------------
 autosummary_generate = True

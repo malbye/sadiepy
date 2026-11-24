@@ -598,8 +598,8 @@ For an emergent cylinder these agree, but for a submerged element ($h_{vs} < h$)
 $\frac{1}{h}\int A\,dz = d\,h_{vs}/h$, which would count the submergence twice
 (it is already in $S(kh_{vs})$). The layered solver avoids the issue by
 integrating the actual width profile $b_i(s)$ (3.4); how $\bar D$ enters Zhang's
-back-calculated $C_D$ values matters when their closures are applied (M2) and is
-an open question for the author.
+back-calculated $C_D$ values matters when their closures are applied; the
+package supports both readings (§5.3, decision of 2026-11-23).
 
 ### 3.7 Additivity of $\beta$ across layers
 
@@ -650,8 +650,8 @@ scale. Using a bulk closure means setting $C_{D,i} = C_D$ in every layer, with
 $C_D$ evaluated from the closure's own definitions of Re, KC or Ur. Mathematically
 this is (3.4) with equal coefficients; the solver records which mode was used.
 Whether a bulk $C_D$ from one paper can be combined with this package's frontal
-areas depends on how that paper defined its area (see the $\bar D$ note in §3.6);
-the closures themselves are M2.
+areas depends on how that paper defined its area (see the $\bar D$ note in §3.6 and
+§5.3–5.4).
 
 ---
 
@@ -684,3 +684,188 @@ a model's $C_D$ (and hence $\beta\lambda$) need not equal the prototype's; this 
 effect is why closures fitted at one scale are re-evaluated at another (spec §2.5). These are the scalings listed in the
 project spec §2.7; the Cauchy-number row is used only from M3 and its exact
 definition is still to be verified against Luhar & Nepf (2016).
+
+---
+
+## 5. Volumes, characteristic lengths and published closures
+
+Section 5 covers what is needed to apply the bulk drag closures of Zhang et al.
+(2023), Table 3 (p. 12), consistently with how they were fitted. Unless noted,
+quantities are per unit bed area, at still-water depth $h$, and use only the
+submerged part $[s_b, s_t^*]$ of each layer, $s_t^* = \min(s_t, h)$.
+
+### 5.1 Frontal area, solid volume and volume fraction
+
+Let $a_i(s)$ be the solid (plan) cross-sectional area of one element of layer
+$i$ at height $s$, e.g. $\pi d^2/4$ for a cylinder. The submerged frontal area and
+solid volume per unit bed area are
+
+$$
+A_f(h) = \sum_i N_i \int_{s_{b,i}}^{s_{t,i}^*} b_i(s)\,ds,
+\qquad
+V_s(h) = \sum_i N_i \int_{s_{b,i}}^{s_{t,i}^*} a_i(s)\,ds,
+\tag{5.1}
+$$
+
+and the submerged volume fraction is the solid volume per unit water volume,
+
+$$
+\mathrm{SVF}(h) = \frac{V_s(h)}{h}.
+\tag{5.2}
+$$
+
+Zhang et al. (2023), Fig. 3 caption (p. 6), define the same quantities per tree:
+$A_p$ (projected area per tree), $\mathrm{SV}$ (submerged volume per tree) and
+$\mathrm{SVF} = N\,\mathrm{SV}/V$ with $V = BWh$ the water volume of the patch
+($B$, $W$ its length and width) and $N$ the number of trees in it. Dividing by the
+bed area $BW$ gives (5.2), so $A_f = N A_p$ and $V_s = N\,\mathrm{SV}$ with $N$ in
+trees/m².
+
+### 5.2 Characteristic lengths
+
+Zhang et al. (2023), Eqs. (9)–(11), p. 3, define three length scales besides the
+stem diameter $d$:
+
+$$
+l_e = \frac{V_s}{A_f},
+\qquad
+l_{ew} = \frac{h - V_s}{A_f},
+\qquad
+r_v = \frac{\pi}{4}\,\frac{1 - \mathrm{SVF}}{\mathrm{SVF}}\,d.
+\tag{5.3}
+$$
+
+The paper writes $l_e = \mathrm{SV}/A_f$ with "$A_f$ the frontal projected area per
+unit volume", and $l_{ew} = (V - \mathrm{SV})/A_f$ with "$V$ the total underwater volume
+of the vegetation zone". As worded, $\mathrm{SV}/A_f$ would have units of m⁴, so
+both numerator and denominator are taken per tree (or, equivalently, per unit bed
+area, as in (5.3), where the water volume per unit bed area is $h$). This reading
+reproduces the axis ranges of Zhang et al. (2023), Fig. 12 (p. 11): for M1 at
+$h = 0.5$ m, $l_e = 4.8$ mm $\approx d/2$, so $\mathrm{KC}_{le}$ reaches about twice
+$\mathrm{KC}_d$, and $l_{ew} \approx 0.77$ m, so $\mathrm{Re}_{lew}$ reaches a few
+$\times 10^5$, as plotted. $r_v$ is the vegetation-related hydraulic radius of Cheng
+& Nguyen (2011) as given by Zhang et al. (2023), Eq. (11), with $d$ the stem
+diameter (DBH) and the SVF of the whole plant. All three depend on $h$.
+
+### 5.3 Layer-averaged and depth-averaged geometries
+
+The layered solver integrates the actual width profile $b_i(s)$ (3.4). Zhang et
+al. (2023) use two coarser descriptions, which the package provides as
+transformations of a `Vegetation`, so that the same solver evaluates all three.
+
+**Layer-averaged.** Each layer's width is replaced by its mean over the
+submerged part of the layer,
+$\bar b_i = \frac{1}{s_{t,i}^* - s_{b,i}}\int_{s_{b,i}}^{s_{t,i}^*} b_i\,ds$. By (3.6),
+with one $C_D$ for the whole plant,
+
+$$
+\beta_i \propto N_i\,\bar b_i\,\big[S(k s_{t,i}^*) - S(k s_{b,i})\big],
+\tag{5.4}
+$$
+
+which is Zhang et al. (2023), Eqs. (19)–(20), p. 9: their relative damping
+factors are $\beta_{rc} = \beta_c/\beta_s$ and $\beta_{rr} = \beta_r/\beta_s$, with
+$\bar D_\text{canopy}$, $\bar D_\text{stem}$ and $\bar D_\text{root}$ the layer-averaged widths.
+Averaging matters only for layers of varying width. For the inverted-triangle
+canopy, $b$ and $\cosh^3 ks$ both increase with $s$, so by Chebyshev's sum
+inequality the resolved integral is at least the layer-averaged one: the averaged
+form underestimates canopy dissipation.
+
+**Depth-averaged (Zhang Eq. 4).** The whole plant becomes one uniform layer on
+$[0, h_{vs}]$, $h_{vs} = \min(h_v, h)$ with $h_v$ the plant height, with frontal
+area per unit volume $N\bar D = A_f(h)/h$, where
+$\bar D = \frac{1}{h}\int A(z)\,dz$ (Zhang et al. 2023, Eq. 4, p. 3). Substituting
+into (3.8):
+
+$$
+\beta = \frac{4}{9\pi}\,C_D\,\frac{A_f(h)}{h}\,H_0\,k\,
+\frac{S(kh_{vs})}{(\sinh 2kh + 2kh)\sinh kh}.
+\tag{5.5}
+$$
+
+When the plant is submerged ($h_v < h$), the frontal area in (5.5) is effectively
+$A_f h_v/h$ (the §3.6 note). Zhang et al. obtained each $C_D$ by inverting Eq. (4)
+with the fitted $\beta$ (§4.3, p. 10). Their published $C_D$ values, and the
+closures fitted to them, are therefore defined with geometry (5.5). Applying those
+closures in (5.5) reproduces the paper's own analysis (a consistency check).
+Applying them in the resolved geometry (3.4) is a different model; the ratio of
+the two $\beta$ values is the size of the geometric assumption (decision of
+2026-11-23).
+
+### 5.4 Incident versus local evaluation of a closure
+
+Zhang et al. (2023) relate one $C_D$ per test (from Eq. 4) to Re, KC and Ur
+computed with the depth-averaged velocity $\bar u = \omega a/(kh)$, $a = H/2$
+(Eq. 8, p. 3). The paper does not state which wave height enters $a$; the package
+assumes the incident height $H_0$, the one in Eqs. (3)–(4). A closure used this
+way gives one $C_D$ per wave, evaluated at the incident wave, so the decay is
+hyperbolic (3.7) (`cd_evaluation="incident"`). Evaluating the closure at the local
+height $H(x)$ and integrating (3.9) (`cd_evaluation="local"`, the default) is the
+physically motivated extension, but it is not how the closures were fitted.
+
+### 5.5 Applying a closure at another scale
+
+Under Froude scaling, Re scales as $\lambda^{3/2}$ while KC and Ur are unchanged
+(§4). Zhang et al. (2023), §4.4 and Conclusions (pp. 12–13), following Kelty et
+al. (2022), compare $C_D$–Re closures from different scales after converting Re to
+a common scale by the factor $\lambda^{3/2}$. A closure fitted in a $1:\lambda_s$
+model and applied to a case at $1:\lambda_c$ is evaluated at
+
+$$
+\mathrm{Re}_s = \mathrm{Re}_c\left(\frac{\lambda_c}{\lambda_s}\right)^{3/2}.
+\tag{5.6}
+$$
+
+This treats the source experiment as a Froude-scaled replica of the case: it
+returns the $C_D$ that was measured for the Froude-similar flow, and it ignores
+the scale effect itself. Evaluating the closure at the case's own Re instead
+assumes that $C_D$ depends on the true Re, and usually extrapolates beyond the
+fitted range. The package converts when the case's scale is given and records
+which one it did.
+
+### 5.6 Component shares
+
+With one $C_D$ for the whole plant, the share of damping in each component is
+$\beta_i/\sum_j \beta_j$. In terms of Zhang's ratios, the canopy share is
+$\beta_{rc}/(1 + \beta_{rc} + \beta_{rr})$, the root share is
+$\beta_{rr}/(1 + \beta_{rc} + \beta_{rr})$ and the stem share is
+$1/(1 + \beta_{rc} + \beta_{rr})$. For the limits $\beta_{rc} \to 3.7$ and $\beta_{rr} \to 1.4$
+(Zhang et al. 2023, p. 9) these are 61 %, 23 % and 16 % for canopy, **root** and
+**stem**; the paper's text lists them as canopy, stem, root (spec erratum E4).
+
+### 5.7 Zhang's empirical damping model (HSVF and HSVI)
+
+Besides the drag closures, Zhang et al. (2023) predict $\beta$ directly from an
+empirical index (Eqs. 12–17, pp. 8–9). The hydraulic submerged volume fraction is
+
+$$
+\mathrm{HSVF} = \mathrm{SVF}\cdot\frac{H}{L}\cdot\frac{B}{L}\cdot\frac{h_{vs}}{h},
+\tag{5.7}
+$$
+
+with SVF from (5.2), $H$ the incident height, $L$ the wavelength, $B$ the patch length
+and $h_{vs} = \min(h_v, h)$ (Zhang Eq. 12). Fitted separately for each model,
+$\beta = \psi\,\mathrm{HSVF}$, with $\psi = 199.94 \pm 14.48$ (M1), $833.82 \pm 34.07$ (M2)
+and $1319.90 \pm 54.23$ m⁻¹ (M3) (Eqs. 13–15; ± is the standard error of the mean).
+The hydraulic submerged volume index combines the canopy and cylindrical parts,
+
+$$
+\mathrm{HSVI} = \mathrm{HSVF}\,\big(c_1\,\mathrm{SVF}_{ca} + c_2\,\mathrm{SVF}_{cy}\big),
+\qquad c_1 = 1.6,\; c_2 = 1.0,
+\tag{5.8}
+$$
+
+and one fit covers all three models, $\beta = (6.67\times10^{4} \pm 2.20\times10^{3})\,\mathrm{HSVI}$
+(Eqs. 16–17; erratum E2: the exponents are clear in the typeset PDF). The paper does
+not define $\mathrm{SVF}_{ca}$ and $\mathrm{SVF}_{cy}$ beyond "submerged volume fraction of
+the canopy part" and "of the cylindrical part". Here they are the submerged solid
+volumes of the canopy and of the stems + roots per unit water volume, so that
+$\mathrm{SVF}_{ca} + \mathrm{SVF}_{cy} = \mathrm{SVF}$. This reading reproduces the axis
+ranges of Fig. 7 (HSVI up to about $2\times10^{-5}$) and Fig. 6 (HSVF up to about
+$0.95\times10^{-3}$). Reading them as shares of SV (summing to 1) would make HSVI about 50
+times larger.
+
+These are regressions, not physics. HSVF is dimensionless while $\beta$ has units of
+1/m, so $\psi$ and the Eq. (17) coefficient are tied to this 1:10 model, this patch
+length ($B = 2$ m) and this tree geometry. They reproduce the paper's analysis and do
+not transfer to other cases.
