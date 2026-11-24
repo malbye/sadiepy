@@ -39,6 +39,31 @@ Note: the following optional dependencies are available with bracket notation:
  * `pip install -e ".[examples]"`: for running the example notebooks in `docs/examples`
  * `pip install -e ".[docs]"`: for building the documentation site (includes `examples`)
 
+## Getting Started
+
+New to SADIE? Start with the two example notebooks in `docs/examples`, in order:
+
+1. [**01 &ndash; Tutorial: how SADIE works**](https://github.com/malbye/sadiepy/blob/main/docs/examples/01_quickstart.ipynb):
+   a slow, step-by-step introduction to every object (water, waves, vegetation layers,
+   drag laws), how to run a calculation, how to read the result, and what the warnings
+   and error messages mean.
+2. [**02 &ndash; A tour of SADIE**](https://github.com/malbye/sadiepy/blob/main/docs/examples/02_tour.ipynb):
+   a visual, plain-English overview of everything SADIE can currently do, with larger
+   examples and figures.
+
+To run them yourself, install the `examples` extra (`pip install -e ".[examples]"`) and
+open them in Jupyter.
+
+A minimal example:
+```python
+import sadiepy as sd
+
+wave = sd.RegularWave(H=0.08, T=1.4, depth=0.4)    # height (m), period (s), depth (m)
+veg = sd.presets.zhang2023("M3")                   # 1:10 mangrove model, Zhang et al. (2023)
+res = sd.propagate(wave, veg, patch_length=2.0, drag=1.0)
+print(res.beta, res.H)                             # damping factor (1/m), heights (m)
+```
+
 ## Development Tools
 
 Development tools are applicable when working with the source code.
