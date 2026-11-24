@@ -20,6 +20,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   between Froude scales; vegetation scaling to prototype.
 - Theory section 5.
 - `02_tour` notebook: a plain-English tour of every current capability, with figures.
+- `01_quickstart` notebook rewritten as a step-by-step tutorial covering every object, option, result field and error message.
 - Documentation site (Sphinx, PyData theme, MyST-NB; Read the Docs config) with the
   theory, an API reference and example notebooks in `docs/examples`
   (`01_quickstart.ipynb`); `[examples]` and `[docs]` extras; CI docs build.
